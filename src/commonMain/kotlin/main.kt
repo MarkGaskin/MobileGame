@@ -3,6 +3,7 @@ import com.soywiz.korge.*
 import com.soywiz.korge.html.*
 import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
+import com.soywiz.korge.input.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
@@ -11,6 +12,62 @@ import com.soywiz.korma.geom.vector.*
 import com.soywiz.korma.interpolation.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.text.TextAlignment
+import kotlin.properties.Delegates
+import kotlin.random.Random
+import Number
+import kotlin.collections.set
+
+
+var gridColumns: Int = 6
+var gridRows: Int = 6
+var cellIndentSize: Int = 8
+var cellSize: Int = 0
+var fieldWidth: Int = 0
+var fieldHeight: Int = 0
+var leftIndent: Int = 0
+var topIndent: Int = 0
+var positionMap = PositionMap()
+var freeId = 0
+
+var font: BitmapFont by Delegates.notNull()
+
+fun getXFromIndex(index: Int) = leftIndent + cellIndentSize + (cellSize + cellIndentSize) * index
+fun getYFromIndex(index: Int) = topIndent + cellIndentSize + (cellSize + cellIndentSize) * index
+fun getXFromPosition(position: Position) = getXFromIndex(position.x)
+fun getYFromPosition(position: Position) = getYFromIndex(position.y)
+
+var blocks: MutableMap<Position, Block> = mutableMapOf<Position, Block>()
+
+
+
+fun getPositionFromPoint (point: Point): Position? {
+	var xCoord = -1
+	var yCoord = -1
+	for (i in 0 until gridColumns) {
+		if (point.x > (i * (cellSize + cellIndentSize) + cellIndentSize + leftIndent) &&
+			point.x < ((i + 1) * (cellSize + cellIndentSize) + cellIndentSize + leftIndent))
+				xCoord = i
+	}
+	if (xCoord == -1) {
+		return null
+	}
+	else
+	{
+		for (j in 0 until gridRows) {
+			if (point.y > (j * (cellSize + cellIndentSize) + cellIndentSize + topIndent) &&
+				point.y < ((j + 1) * (cellSize + cellIndentSize) + cellIndentSize + topIndent))
+				yCoord = j
+		}
+	}
+	if (yCoord == -1) {
+		return null
+	}
+	else
+	{
+		return Position(xCoord,yCoord)
+	}
+}
+
 
 suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
 	/*
@@ -30,18 +87,13 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 	}
 	*/
 
-	val font = resourcesVfs["clear_sans.fnt"].readBitmapFont()
+	font = resourcesVfs["clear_sans.fnt"].readBitmapFont()
 
-	val gridColumns = 6
-	val gridRows = 7
-
-	val cellIndentSize = 8
-
-	val cellSize = views.virtualWidth / (gridColumns+2)
-	val fieldWidth = (cellIndentSize * (gridColumns+1)) + gridColumns * cellSize
-	val fieldHeight = (cellIndentSize * (gridRows+1)) + gridRows * cellSize
-	val leftIndent = (views.virtualWidth - fieldWidth) / 2
-	val topIndent = 155
+	cellSize = views.virtualWidth / (gridColumns+2)
+	fieldWidth = (cellIndentSize * (gridColumns+1)) + gridColumns * cellSize
+	fieldHeight = (cellIndentSize * (gridRows+1)) + gridRows * cellSize
+	leftIndent = (views.virtualWidth - fieldWidth) / 2
+	topIndent = 155
 
 	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#b9aea0"]) {
 		position(leftIndent, topIndent)
@@ -105,5 +157,50 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		}
 		alignTopToBottomOf(bgLogo, 5)
 		alignRightToRightOf(bgLogo)
+	}
+
+	initBlocks()
+	drawBlocks()
+
+
+	touch {
+		onDown { selectBlock(getPositionFromPoint(mouseXY)) }
+	}
+
+}
+
+
+
+fun Container.generateMissingBlocks() {
+	positionMap.getAllEmptyPositions()
+		       .map { position ->
+							val number = if (Random.nextDouble() < 0.9) Number.ZERO else Number.ONE
+							positionMap[positionMap.getIndex(position)] = number }
+}
+fun Container.reInitializePositionMap() {
+	positionMap.reInitializePositionMap()
+}
+
+fun Container.initBlocks () {
+	positionMap.getIndexedArray().forEach{ (position, number) -> blocks[position] = Block(number, false) }
+}
+
+fun Container.drawBlock (block: Block, position: Position) {
+	block(block.number).position(getXFromPosition(position), getYFromPosition(position))
+}
+
+
+fun Container.drawBlocks () {
+	blocks
+		.map { (position, block) -> drawBlock(block, position) }
+}
+
+fun deleteBlock(position: Position) = blocks.remove(position)!!.removeFromParent()
+
+fun Container.selectBlock (maybePosition: Position?) {
+	if (maybePosition != null && blocks[maybePosition] != null)
+	{
+		blocks[maybePosition] = blocks[maybePosition]!!.select()
+		drawBlock(blocks[maybePosition]!!.select(), maybePosition)
 	}
 }
