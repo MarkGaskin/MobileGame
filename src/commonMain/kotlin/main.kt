@@ -16,7 +16,7 @@ import kotlin.properties.Delegates
 import kotlin.random.Random
 import Number
 import kotlin.collections.set
-
+import Napier
 
 var gridColumns: Int = 6
 var gridRows: Int = 6
@@ -40,7 +40,12 @@ var blocks: MutableMap<Position, Block> = mutableMapOf<Position, Block>()
 
 
 
+fun deleteBlock(position: Position) =
+	blocks.remove(position)?.removeFromParent()
+
 fun getPositionFromPoint (point: Point): Position? {
+	Napier .v("Hello napier")
+	return Position(0,0)
 	var xCoord = -1
 	var yCoord = -1
 	for (i in 0 until gridColumns) {
@@ -123,7 +128,7 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgBest)
 		alignTopToTopOf(bgBest, 3.0)
 	}
-	text("0", cellSize * 1.0, Colors.WHITE, font) {
+	text((blocks.size + 1).toString(), cellSize * 1.0, Colors.WHITE, font) {
 
 		setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
@@ -161,6 +166,8 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 	initBlocks()
 	drawBlocks()
+	selectBlock(Position(1,1,))
+	deleteBlock(Position(3,3))
 
 
 	touch {
@@ -182,7 +189,7 @@ fun Container.reInitializePositionMap() {
 }
 
 fun Container.initBlocks () {
-	positionMap.getIndexedArray().forEach{ (position, number) -> blocks[position] = Block(number, false) }
+	positionMap.getIndexedArray().forEach{ (position, number) -> blocks[position] = Block(number, true) }
 }
 
 fun Container.drawBlock (block: Block, position: Position) {
@@ -195,12 +202,12 @@ fun Container.drawBlocks () {
 		.map { (position, block) -> drawBlock(block, position) }
 }
 
-fun deleteBlock(position: Position) = blocks.remove(position)!!.removeFromParent()
-
 fun Container.selectBlock (maybePosition: Position?) {
 	if (maybePosition != null && blocks[maybePosition] != null)
 	{
 		blocks[maybePosition] = blocks[maybePosition]!!.select()
-		drawBlock(blocks[maybePosition]!!.select(), maybePosition)
+		//drawBlock(blocks[maybePosition]!!.select(), maybePosition)
+		deleteBlock(maybePosition)
+		drawBlock(block(Number.EIGHT), Position(1,1,))
 	}
 }
