@@ -15,8 +15,9 @@ import com.soywiz.korim.text.TextAlignment
 import kotlin.properties.Delegates
 import kotlin.random.Random
 import Number
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import kotlin.collections.set
-import Napier
 
 var gridColumns: Int = 6
 var gridRows: Int = 6
@@ -44,7 +45,7 @@ fun deleteBlock(position: Position) =
 	blocks.remove(position)?.removeFromParent()
 
 fun getPositionFromPoint (point: Point): Position? {
-	Napier .v("Hello napier")
+	Napier.v("getPositionFromPoint")
 	return Position(0,0)
 	var xCoord = -1
 	var yCoord = -1
@@ -91,6 +92,8 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		image.tween(image::rotation[maxDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
 	}
 	*/
+
+	Napier.base(DebugAntilog())
 
 	font = resourcesVfs["clear_sans.fnt"].readBitmapFont()
 
@@ -164,10 +167,15 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		alignRightToRightOf(bgLogo)
 	}
 
+	Napier.w("Reached here")
+	Napier.e("Reached here")
+	Napier.d("Reached here")
+
 	initBlocks()
 	drawBlocks()
 	selectBlock(Position(1,1,))
 	deleteBlock(Position(3,3))
+
 
 
 	touch {
