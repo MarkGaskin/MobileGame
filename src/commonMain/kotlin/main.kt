@@ -204,6 +204,7 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 fun Container.deleteBlock(block: Block?) {
 	if (block is Block) {
 		Napier.v("deleteBlock with Id = ${block.id}")
+		blocksMap = blocksMap.filter { (position, existingBlock) -> block.id != existingBlock.id }.toMutableMap()
 		removeBlock(block)
 	}
 }
@@ -271,29 +272,21 @@ fun Container.hoverBlock (maybePosition: Position?) {
 }
 
 fun Container.pressUp (maybePosition: Position?) {
-	if (maybePosition != null)
-	{
-		if (blocksMap[maybePosition] != null)
-		{
-			Napier.v("Releasing Block at Position(${maybePosition.x},${maybePosition.y})")
-			isPressed = false
-			if (checkForPattern()) {
-				successfulShape()
-			}
-			else
-			{
-				unsuccessfulShape()
-			}
-		}
-		else
-		{
-			Napier.w("No block found at Position(${maybePosition.x},${maybePosition.y})")
-		}
+	if (maybePosition is Position) {
+		Napier.v("Releasing Block at Position(${maybePosition.x},${maybePosition.y})")
+	}
+	else{
+		Napier.v("Releasing Block outside of field")
+	}
+	isPressed = false
+	if (checkForPattern()) {
+		successfulShape()
 	}
 	else
 	{
-		Napier.w("Position parameter was null ")
+		unsuccessfulShape()
 	}
+
 }
 
 fun Container.unsuccessfulShape() {
