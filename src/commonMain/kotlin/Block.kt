@@ -2,12 +2,17 @@ import Number.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 
-fun Container.block(number: Number) = Block(number).addTo(this)
+fun Container.addBlock(id: Int, number: Number, isSelected: Boolean = false) = Block(id, number, isSelected).addTo(this)
+fun Container.addBlock(block: Block) = block.addTo(this)
+fun Container.removeBlock(id: Int, number: Number, isSelected: Boolean = false) = this.removeChild(Block(id,number,isSelected))
+fun Container.removeBlock(block: Block) = this.removeChild(block)
 
-class Block(val number: Number, var isSelected: Boolean = false) : Container() {
+
+
+class Block(val id: Int, val number: Number, var isSelected: Boolean = false) : Container() {
 
     init {
-        roundRect(cellSize, cellSize, 5, fill = if (isSelected) RGBA(255, 34, 34) else number.color)
+        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = if (isSelected) Colors["#6a00b0"] else number.color, strokeThickness = 4.0)
 
         val textColor = when (number) {
             ZERO, ONE -> Colors.BLACK
@@ -18,8 +23,16 @@ class Block(val number: Number, var isSelected: Boolean = false) : Container() {
         }
     }
 
+    fun toggleSelect (): Block {
+        return Block(id ,number, !isSelected)
+    }
+
     fun select (): Block {
-        return Block(number, true)
+        return Block(id ,number, true)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return other is Block && this.id == other.id
     }
 }
 

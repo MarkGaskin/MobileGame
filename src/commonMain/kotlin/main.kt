@@ -1,7 +1,4 @@
-import com.soywiz.klock.*
 import com.soywiz.korge.*
-import com.soywiz.korge.html.*
-import com.soywiz.korge.tween.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.input.*
 import com.soywiz.korim.color.*
@@ -9,15 +6,12 @@ import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
-import com.soywiz.korma.interpolation.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.text.TextAlignment
 import kotlin.properties.Delegates
-import kotlin.random.Random
-import Number
+
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
-import kotlin.collections.set
 
 var gridColumns: Int = 6
 var gridRows: Int = 6
@@ -27,8 +21,15 @@ var fieldWidth: Int = 0
 var fieldHeight: Int = 0
 var leftIndent: Int = 0
 var topIndent: Int = 0
-var positionMap = PositionMap()
-var freeId = 0
+var nextBlockId = 0
+
+var isPressed = false
+fun press() {
+	isPressed = true
+}
+fun lift() {
+	isPressed = false
+}
 
 var font: BitmapFont by Delegates.notNull()
 
@@ -37,41 +38,52 @@ fun getYFromIndex(index: Int) = topIndent + cellIndentSize + (cellSize + cellInd
 fun getXFromPosition(position: Position) = getXFromIndex(position.x)
 fun getYFromPosition(position: Position) = getYFromIndex(position.y)
 
-var blocks: MutableMap<Position, Block> = mutableMapOf<Position, Block>()
 
+var blocksMap: MutableMap<Position, Block> = mutableMapOf()
 
-
-fun deleteBlock(position: Position) =
-	blocks.remove(position)?.removeFromParent()
+var hoveredPositions: MutableList<Position> = mutableListOf()
+/*fun convertPositionToPair(position: Position): Pair<Int,Int> {
+	return Pair(position.x, position.y)
+}*/
 
 fun getPositionFromPoint (point: Point): Position? {
-	Napier.v("getPositionFromPoint")
-	return Position(0,0)
+	Napier.d("Point x = ${point.x}, y = ${point.y}")
 	var xCoord = -1
 	var yCoord = -1
 	for (i in 0 until gridColumns) {
-		if (point.x > (i * (cellSize + cellIndentSize) + cellIndentSize + leftIndent) &&
-			point.x < ((i + 1) * (cellSize + cellIndentSize) + cellIndentSize + leftIndent))
+		if (point.x > (i * (cellSize + cellIndentSize) + (cellIndentSize/2) + leftIndent) &&
+			point.x < ((i + 1) * (cellSize + cellIndentSize) + (cellIndentSize/2) + leftIndent))
+			{
+				Napier.d("Matched x value to position index $i")
 				xCoord = i
+				break
+			}
 	}
 	if (xCoord == -1) {
+		Napier.d("x value outside of cell range")
 		return null
 	}
 	else
 	{
 		for (j in 0 until gridRows) {
-			if (point.y > (j * (cellSize + cellIndentSize) + cellIndentSize + topIndent) &&
-				point.y < ((j + 1) * (cellSize + cellIndentSize) + cellIndentSize + topIndent))
-				yCoord = j
+			if (point.y > (j * (cellSize + cellIndentSize) + (cellIndentSize/2) + topIndent) &&
+				point.y < ((j + 1) * (cellSize + cellIndentSize) + (cellIndentSize/2) + topIndent))
+				{
+					Napier.d("Matched y value to position index $j")
+					yCoord = j
+					break
+				}
 		}
 	}
-	if (yCoord == -1) {
-		return null
-	}
-	else
-	{
-		return Position(xCoord,yCoord)
-	}
+	return	if (yCoord == -1) {
+				Napier.d("y value outside of cell range")
+				null
+			}
+			else
+			{
+				Napier.d("Returned Position($xCoord,$yCoord)")
+				Position(xCoord,yCoord)
+			}
 }
 
 
@@ -98,9 +110,13 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 	font = resourcesVfs["clear_sans.fnt"].readBitmapFont()
 
 	cellSize = views.virtualWidth / (gridColumns+2)
+	Napier.d("Cell size = $cellSize")
 	fieldWidth = (cellIndentSize * (gridColumns+1)) + gridColumns * cellSize
+	Napier.d("Field width = $fieldWidth")
 	fieldHeight = (cellIndentSize * (gridRows+1)) + gridRows * cellSize
+	Napier.d("Field height = $fieldHeight")
 	leftIndent = (views.virtualWidth - fieldWidth) / 2
+	Napier.d("Left indent = $leftIndent")
 	topIndent = 155
 
 	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#b9aea0"]) {
@@ -131,7 +147,7 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgBest)
 		alignTopToTopOf(bgBest, 3.0)
 	}
-	text((blocks.size + 1).toString(), cellSize * 1.0, Colors.WHITE, font) {
+	text((blocksMap.size + 1).toString(), cellSize * 1.0, Colors.WHITE, font) {
 
 		setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
@@ -166,56 +182,118 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		alignTopToBottomOf(bgLogo, 5)
 		alignRightToRightOf(bgLogo)
 	}
+	Napier.d("UI Initialized")
 
-	Napier.w("Reached here")
-	Napier.e("Reached here")
-	Napier.d("Reached here")
 
-	initBlocks()
-	drawBlocks()
-	selectBlock(Position(1,1,))
-	deleteBlock(Position(3,3))
+	blocksMap = initializeBlocksMap ()
+	drawAllBlocks()
+	//deleteBlock(Position(3,3))
 
 
 
 	touch {
-		onDown { selectBlock(getPositionFromPoint(mouseXY)) }
+		onDown { pressDown(getPositionFromPoint(mouseXY)) }
+		onMove { hoverBlock(getPositionFromPoint(mouseXY))  }
+		onUp { pressUp(getPositionFromPoint(mouseXY)) }
 	}
 
 }
 
 
 
-fun Container.generateMissingBlocks() {
-	positionMap.getAllEmptyPositions()
-		       .map { position ->
-							val number = if (Random.nextDouble() < 0.9) Number.ZERO else Number.ONE
-							positionMap[positionMap.getIndex(position)] = number }
-}
-fun Container.reInitializePositionMap() {
-	positionMap.reInitializePositionMap()
-}
-
-fun Container.initBlocks () {
-	positionMap.getIndexedArray().forEach{ (position, number) -> blocks[position] = Block(number, true) }
+fun Container.deleteBlock(block: Block?) {
+	if (block is Block) {
+		Napier.v("deleteBlock with Id = ${block.id}")
+		removeBlock(block)
+	}
 }
 
 fun Container.drawBlock (block: Block, position: Position) {
-	block(block.number).position(getXFromPosition(position), getYFromPosition(position))
+	Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}")
+	addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
 }
 
 
-fun Container.drawBlocks () {
-	blocks
-		.map { (position, block) -> drawBlock(block, position) }
+fun Container.drawAllBlocks () {
+	Napier.v("drawBlocks")
+	blocksMap
+		.forEach { (position, block) -> drawBlock(block, position) }
+
+
+	Napier.v("${blocksMap.map { (key,block) -> "Position (${key.x},${key.y}) with value ${block.number.value}\n" }}")
 }
 
-fun Container.selectBlock (maybePosition: Position?) {
-	if (maybePosition != null && blocks[maybePosition] != null)
+/*fun Container.findPosition (position: Position): Map<Position, Block> {
+	return blocks.filter { (key, value) -> key.x == position.x && key.y == position.y }
+}
+
+fun Container.checkPositionExists (position: Position): Boolean {
+	return findPosition(position).isNotEmpty()
+}*/
+
+fun Container.updateBlock(block: Block, position: Position){
+	blocksMap[position] = block
+	deleteBlock(block)
+	drawBlock(block, position)
+}
+
+fun Container.checkForPattern(){
+	hoveredPositions
+}
+
+fun Container.hoverBlock (maybePosition: Position?) {
+	if (isPressed && maybePosition != null)
 	{
-		blocks[maybePosition] = blocks[maybePosition]!!.select()
-		//drawBlock(blocks[maybePosition]!!.select(), maybePosition)
-		deleteBlock(maybePosition)
-		drawBlock(block(Number.EIGHT), Position(1,1,))
+		if (blocksMap[maybePosition] is Block) {
+			if (!blocksMap[maybePosition]?.isSelected!!) {
+				Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
+				updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
+			} else {
+				Napier.d("Block is already selected)")
+			}
+		}
+		else
+		{
+			Napier.w("No block found at Position(${maybePosition.x},${maybePosition.y})")
+		}
+	}
+}
+
+fun Container.pressUp (maybePosition: Position?) {
+	if (maybePosition != null)
+	{
+		if (blocksMap[maybePosition] != null)
+		{
+			Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
+			isPressed = false
+		}
+		else
+		{
+			Napier.w("No block found at Position(${maybePosition.x},${maybePosition.y})")
+		}
+	}
+	else
+	{
+		Napier.w("Position parameter was null ")
+	}
+}
+
+fun Container.pressDown (maybePosition: Position?) {
+	if (maybePosition != null)
+	{
+		if (blocksMap[maybePosition] != null)
+		{
+			Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
+			isPressed = !isPressed
+			updateBlock(blocksMap[maybePosition]!!.toggleSelect(), maybePosition)
+		}
+		else
+		{
+			Napier.w("No block found at Position(${maybePosition.x},${maybePosition.y})")
+		}
+	}
+	else
+	{
+		Napier.w("Position parameter was null ")
 	}
 }
