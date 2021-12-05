@@ -1,3 +1,4 @@
+import kotlin.math.abs
 import kotlin.random.*
 
 data class Position(val x: Int, val y: Int){
@@ -60,6 +61,18 @@ private fun tryAdjacentPositions(position:Position, direction: Direction) =
 
 private fun tryAllAdjacentPositions(position: Position) =
     Direction.values().mapNotNull{ direction -> tryAdjacentPositions(position, direction) }
+
+fun isValidTransition(oldPosition: Position, newPosition: Position?): Boolean{
+    return  if(newPosition is Position) {
+                (abs(newPosition.x - oldPosition.x) == 1) xor (abs(newPosition.y - oldPosition.y) == 1) &&
+                        ((newPosition.x - oldPosition.x) * (newPosition.y - oldPosition.y) == 0)
+            }
+            else
+            {
+                 false
+            }
+}
+
 
 fun hasAvailableMoves(): Boolean {
     return blocksMap.any { (position, block) -> hasTwoMatchingAdjacents(position, block) }

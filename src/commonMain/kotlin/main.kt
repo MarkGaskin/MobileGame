@@ -209,7 +209,8 @@ fun Container.deleteBlock(block: Block?) {
 }
 
 fun Container.drawBlock (block: Block, position: Position) {
-	Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}")
+	Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}, IsSelected ${block.isSelected}")
+	blocksMap[position] = addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
 	addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
 }
 
@@ -218,9 +219,6 @@ fun Container.drawAllBlocks () {
 	Napier.v("drawBlocks")
 	blocksMap
 		.forEach { (position, block) -> drawBlock(block, position) }
-
-
-	Napier.v("${blocksMap.map { (key,block) -> "Position (${key.x},${key.y}) with value ${block.number.value}\n" }}")
 }
 
 /*fun Container.findPosition (position: Position): Map<Position, Block> {
@@ -232,29 +230,42 @@ fun Container.checkPositionExists (position: Position): Boolean {
 }*/
 
 fun Container.updateBlock(block: Block, position: Position){
-	blocksMap[position] = block
+	val newBlock = block.copy()
 	deleteBlock(block)
-	drawBlock(block, position)
+	blocksMap[position] = newBlock
+	drawBlock(newBlock, position)
 }
 
-fun Container.checkForPattern(){
-	hoveredPositions
+fun Container.checkForPattern(): Boolean {
+	return (hoveredPositions.size > 2)
 }
 
 fun Container.hoverBlock (maybePosition: Position?) {
-	if (isPressed && maybePosition != null)
-	{
-		if (blocksMap[maybePosition] is Block) {
-			if (!blocksMap[maybePosition]?.isSelected!!) {
-				Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
-				updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
-			} else {
-				Napier.d("Block is already selected)")
-			}
-		}
-		else
-		{
+	if (isPressed && maybePosition != null && (hoveredPositions.size > 0 && hoveredPositions.last() != maybePosition)) {
+		if (blocksMap[maybePosition] == null) {
 			Napier.w("No block found at Position(${maybePosition.x},${maybePosition.y})")
+		} else if (hoveredPositions.size > 0 && !isValidTransition(
+				hoveredPositions.last(),
+				maybePosition
+			)
+		) {
+			Napier.d("Block transition is invalid")
+		} else if (hoveredPositions.size > 0 && blocksMap[hoveredPositions.last()]?.number != blocksMap[maybePosition]?.number) {
+			Napier.d("Hovered a square of a different value")
+		} else if (hoveredPositions.elementAtOrNull(hoveredPositions.size - 2) == maybePosition) {
+			Napier.d("Reverted previous hover")
+			updateBlock(
+				blocksMap[hoveredPositions[(hoveredPositions.size - 1)]]!!.unselect(),
+				hoveredPositions[(hoveredPositions.size - 1)]
+			)
+			hoveredPositions.removeAt(hoveredPositions.size - 1)
+		} else if (blocksMap[maybePosition]?.isSelected!!) {
+			Napier.d("Block is already selected)")
+		} else {
+			Napier.v("Hovering Block at Position(${maybePosition.x},${maybePosition.y} from Position(${hoveredPositions.last().x},${hoveredPositions.last().y})")
+			hoveredPositions.add(maybePosition)
+			updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
+
 		}
 	}
 }
@@ -264,8 +275,15 @@ fun Container.pressUp (maybePosition: Position?) {
 	{
 		if (blocksMap[maybePosition] != null)
 		{
-			Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
+			Napier.v("Releasing Block at Position(${maybePosition.x},${maybePosition.y})")
 			isPressed = false
+			if (checkForPattern()) {
+				successfulShape()
+			}
+			else
+			{
+				unsuccessfulShape()
+			}
 		}
 		else
 		{
@@ -278,6 +296,22 @@ fun Container.pressUp (maybePosition: Position?) {
 	}
 }
 
+fun Container.unsuccessfulShape() {
+	Napier.d("Shape was unsuccessful ")
+	hoveredPositions
+		.forEach { position ->
+			blocksMap[position] = blocksMap[position]?.unselect()!!
+			Napier.d("Removing hovered Position(${position.x},${position.y})")
+			updateBlock(blocksMap[position]!!, position)
+			}
+	hoveredPositions.clear()
+}
+
+fun Container.successfulShape() {
+	hoveredPositions.forEach { position -> deleteBlock(blocksMap[position]) }
+	hoveredPositions.clear()
+}
+
 fun Container.pressDown (maybePosition: Position?) {
 	if (maybePosition != null)
 	{
@@ -285,7 +319,8 @@ fun Container.pressDown (maybePosition: Position?) {
 		{
 			Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
 			isPressed = !isPressed
-			updateBlock(blocksMap[maybePosition]!!.toggleSelect(), maybePosition)
+			hoveredPositions.add(maybePosition)
+			updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
 		}
 		else
 		{
