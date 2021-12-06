@@ -21,6 +21,7 @@ import io.github.aakira.napier.Napier
 
 var gridColumns: Int = 6
 var gridRows: Int = 6
+
 var cellIndentSize: Int = 8
 var cellSize: Int = 0
 var fieldWidth: Int = 0
@@ -198,8 +199,6 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 	blocksMap = initializeBlocksMap ()
 	drawAllBlocks()
-	//deleteBlock(Position(3,3))
-
 
 
 	touch {
@@ -233,14 +232,6 @@ fun Container.drawAllBlocks () {
 		.forEach { (position, block) -> drawBlock(block, position) }
 }
 
-/*fun Container.findPosition (position: Position): Map<Position, Block> {
-	return blocks.filter { (key, value) -> key.x == position.x && key.y == position.y }
-}
-
-fun Container.checkPositionExists (position: Position): Boolean {
-	return findPosition(position).isNotEmpty()
-}*/
-
 fun Container.updateBlock(block: Block, position: Position){
 	val newBlock = block.copy()
 	deleteBlock(block)
@@ -255,7 +246,7 @@ fun Container.atLeastThreeSelected(): Boolean {
 fun Container.hoverBlock (maybePosition: Position?) {
 	if (isPressed && maybePosition != null && (hoveredPositions.size > 0 && hoveredPositions.last() != maybePosition)) {
 		if (blocksMap[maybePosition] == null) {
-			Napier.w("No block found at Position(${maybePosition.x},${maybePosition.y})")
+			Napier.w("F found at Position(${maybePosition.x},${maybePosition.y})")
 		} else if (hoveredPositions.size > 0 && !isValidTransition(
 				hoveredPositions.last(),
 				maybePosition
@@ -323,7 +314,7 @@ fun Container.pressDown (maybePosition: Position?) {
 		if (blocksMap[maybePosition] != null)
 		{
 			Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
-			isPressed = !isPressed
+			isPressed = true
 			hoveredPositions.add(maybePosition)
 			updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
 		}
@@ -341,7 +332,7 @@ fun Container.pressDown (maybePosition: Position?) {
 fun Stage.animateMerge(positionList: MutableList<Position>) = launchImmediately {
 	startAnimating()
 	val lastPosition = positionList.removeLast()
-	var accumulatedSum = 0 // blocksMap[lastPosition]!!.number.value
+	var accumulatedSum = 0
 	animateSequence {
 		parallel {
 			positionList.forEach { position ->
@@ -371,11 +362,39 @@ fun Stage.animateMerge(positionList: MutableList<Position>) = launchImmediately 
 				{
 					Napier.w("No block found for consumption at $lastPosition")
 				}
-
 			}
-			stopAnimating()
+		}
+		sequenceLazy {
+			val newPositionBlocks = generateBlocksForEmptyPositions()
+			Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.x},${position.y})\n" }}")
+			blocksMap.putAll(newPositionBlocks)
+
+			parallel{
+				for (i in 0 until gridColumns) {
+					sequence {
+						newPositionBlocks.filter { (position, _) -> position.x == i }
+							.sortedByDescending { (position, _) -> position.y }
+							.forEach { (position, block) ->
+								val startingPosition = Position(position.x, 0)
+								addBlock(block).position(
+									getXFromPosition(startingPosition),
+									getYFromPosition(startingPosition)
+								).moveTo(
+									getXFromPosition(position),
+									getYFromPosition(position),
+									0.5.seconds,
+									Easing.EASE_SINE
+								)
+							}
+					}
+				}
+			}
+
+
+
 		}
 	}
+	stopAnimating()
 }
 
 
@@ -387,7 +406,7 @@ fun Animator.animateGravity() {
 							.size.let {
 								val newPosition = Position(position.x, gridRows - 1 - it)
 								if (newPosition != position){
-									blocksMap[position]!!.moveTo(getXFromPosition(newPosition), getYFromPosition(newPosition), 0.3.seconds, Easing.EASE_SINE)
+									blocksMap[position]!!.moveTo(getXFromPosition(newPosition), getYFromPosition(newPosition), 0.5.seconds, Easing.EASE_SINE)
 								}
 								newPosition
 
@@ -395,6 +414,7 @@ fun Animator.animateGravity() {
 
 	}
 }
+
 fun Animator.animateConsumption(block: Block) {
 	val x = block.x
 	val y = block.y
