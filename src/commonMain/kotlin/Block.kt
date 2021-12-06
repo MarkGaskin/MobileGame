@@ -13,7 +13,7 @@ fun Container.removeBlock(block: Block) {
 
 
 
-data class Block(val id: Int, val number: Number, var isSelected: Boolean = false) : Container() {
+data class Block(val id: Int, var number: Number, var isSelected: Boolean = false) : Container() {
 
 
     init {
@@ -40,6 +40,11 @@ data class Block(val id: Int, val number: Number, var isSelected: Boolean = fals
 
     fun copy (): Block {
         return Block(id, number, isSelected)
+    }
+
+    fun add (numberValue: Int): Block {
+        this.number = findClosest(numberValue + number.value)
+        return this
     }
 
     override fun equals(other: Any?): Boolean {

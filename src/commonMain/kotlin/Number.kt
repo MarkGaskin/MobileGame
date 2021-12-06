@@ -1,4 +1,5 @@
 import com.soywiz.korim.color.RGBA
+import kotlin.math.abs
 
 enum class Number(val value: Int, val color: RGBA, val display: String) {
     ZERO(1, RGBA(240, 228, 218), "1"),
@@ -24,3 +25,6 @@ enum class Number(val value: Int, val color: RGBA, val display: String) {
 
     fun next() = values()[(ordinal + 1) % values().size]
 }
+
+
+fun findClosest (comparisonValue: Int) = Number.values().minByOrNull { number -> abs(number.value - comparisonValue) }!!

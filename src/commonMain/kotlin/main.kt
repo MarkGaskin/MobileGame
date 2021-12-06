@@ -1,6 +1,10 @@
+import com.soywiz.klock.seconds
 import com.soywiz.korge.*
+import com.soywiz.korge.animate.Animator
+import com.soywiz.korge.animate.animateSequence
 import com.soywiz.korge.view.*
 import com.soywiz.korge.input.*
+import com.soywiz.korge.tween.get
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
@@ -8,6 +12,8 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.text.TextAlignment
+import com.soywiz.korio.async.launchImmediately
+import com.soywiz.korma.interpolation.Easing
 import kotlin.properties.Delegates
 
 import io.github.aakira.napier.DebugAntilog
@@ -45,6 +51,11 @@ var hoveredPositions: MutableList<Position> = mutableListOf()
 /*fun convertPositionToPair(position: Position): Pair<Int,Int> {
 	return Pair(position.x, position.y)
 }*/
+
+var isAnimating: Boolean = false
+fun startAnimating() { isAnimating = true }
+fun stopAnimating() { isAnimating = false }
+
 
 fun getPositionFromPoint (point: Point): Position? {
 	Napier.d("Point x = ${point.x}, y = ${point.y}")
@@ -192,9 +203,9 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 
 	touch {
-		onDown { pressDown(getPositionFromPoint(mouseXY)) }
-		onMove { hoverBlock(getPositionFromPoint(mouseXY))  }
-		onUp { pressUp(getPositionFromPoint(mouseXY)) }
+		onDown { if (!isAnimating) pressDown(getPositionFromPoint(mouseXY)) }
+		onMove { if (!isAnimating) hoverBlock(getPositionFromPoint(mouseXY))  }
+		onUp { if (!isAnimating) pressUp(getPositionFromPoint(mouseXY)) }
 	}
 
 }
@@ -237,7 +248,7 @@ fun Container.updateBlock(block: Block, position: Position){
 	drawBlock(newBlock, position)
 }
 
-fun Container.checkForPattern(): Boolean {
+fun Container.atLeastThreeSelected(): Boolean {
 	return (hoveredPositions.size > 2)
 }
 
@@ -271,7 +282,7 @@ fun Container.hoverBlock (maybePosition: Position?) {
 	}
 }
 
-fun Container.pressUp (maybePosition: Position?) {
+fun Stage.pressUp (maybePosition: Position?) {
 	if (maybePosition is Position) {
 		Napier.v("Releasing Block at Position(${maybePosition.x},${maybePosition.y})")
 	}
@@ -279,8 +290,8 @@ fun Container.pressUp (maybePosition: Position?) {
 		Napier.v("Releasing Block outside of field")
 	}
 	isPressed = false
-	if (checkForPattern()) {
-		successfulShape()
+	if (atLeastThreeSelected()) {
+		successfulShape(determinePattern(hoveredPositions))
 	}
 	else
 	{
@@ -289,7 +300,7 @@ fun Container.pressUp (maybePosition: Position?) {
 
 }
 
-fun Container.unsuccessfulShape() {
+fun Stage.unsuccessfulShape() {
 	Napier.d("Shape was unsuccessful ")
 	hoveredPositions
 		.forEach { position ->
@@ -300,8 +311,9 @@ fun Container.unsuccessfulShape() {
 	hoveredPositions.clear()
 }
 
-fun Container.successfulShape() {
-	hoveredPositions.forEach { position -> deleteBlock(blocksMap[position]) }
+fun Stage.successfulShape(pattern: Pattern) {
+	val squareCount = pattern.getSquareCount()
+	animateMerge(hoveredPositions)
 	hoveredPositions.clear()
 }
 
@@ -324,4 +336,81 @@ fun Container.pressDown (maybePosition: Position?) {
 	{
 		Napier.w("Position parameter was null ")
 	}
+}
+
+fun Stage.animateMerge(positionList: MutableList<Position>) = launchImmediately {
+	startAnimating()
+	val lastPosition = positionList.removeLast()
+	var accumulatedSum = 0 // blocksMap[lastPosition]!!.number.value
+	animateSequence {
+		parallel {
+			positionList.forEach { position ->
+				sequence {
+					parallel {
+						blocksMap[position]!!.moveTo(getXFromPosition(lastPosition), getYFromPosition(lastPosition), 0.15.seconds, Easing.LINEAR)
+						accumulatedSum += blocksMap[position]!!.number.value
+						deleteBlock(blocksMap[position]!!)
+					}
+				}
+			}
+		}
+		block {
+			val newBlock = blocksMap[lastPosition]!!.add(accumulatedSum).unselect().copy()
+			deleteBlock(blocksMap[lastPosition]!!)
+			blocksMap[lastPosition] = newBlock
+			drawBlock(newBlock, lastPosition)
+		}
+		sequenceLazy {
+			parallel {
+				animateGravity()
+				if (blocksMap[lastPosition] != null)
+				{
+					animateConsumption(blocksMap[lastPosition]!!)
+				}
+				else
+				{
+					Napier.w("No block found for consumption at $lastPosition")
+				}
+
+			}
+			stopAnimating()
+		}
+	}
+}
+
+
+fun Animator.animateGravity() {
+	parallel {
+		blocksMap = blocksMap.mapKeys { (position, block) ->
+						blocksMap.filter { (comparisonPosition, _) ->
+							position.x == comparisonPosition.x && position.y < comparisonPosition.y }
+							.size.let {
+								val newPosition = Position(position.x, gridRows - 1 - it)
+								if (newPosition != position){
+									blocksMap[position]!!.moveTo(getXFromPosition(newPosition), getYFromPosition(newPosition), 0.3.seconds, Easing.EASE_SINE)
+								}
+								newPosition
+
+						}}.toMutableMap()
+
+	}
+}
+fun Animator.animateConsumption(block: Block) {
+	val x = block.x
+	val y = block.y
+	val scale = block.scale
+	tween(
+		block::x[x - 4],
+		block::y[y - 4],
+		block::scale[scale + 0.1],
+		time = 0.1.seconds,
+		easing = Easing.LINEAR
+	)
+	tween(
+		block::x[x],
+		block::y[y],
+		block::scale[scale],
+		time = 0.1.seconds,
+		easing = Easing.LINEAR
+	)
 }
