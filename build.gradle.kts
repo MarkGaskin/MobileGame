@@ -1,24 +1,29 @@
 import com.soywiz.korge.gradle.*
 
+plugins {
+	id("com.soywiz.korge")
+	kotlin("kapt") version "1.5.21"
+}
+
 buildscript {
 	val korgePluginVersion: String by project
-
-	repositories {
-		mavenLocal()
-		mavenCentral()
-		google()
-		maven { url = uri("https://plugins.gradle.org/m2/") }
-	}
 	dependencies {
 		classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:$korgePluginVersion")
 	}
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+	google()
+	maven("https://jitpack.io")
 }
 
 apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.sample.demo"
-
+	name = "Tri.io"
 // To enable all targets at once
 
 	//targetAll()
@@ -34,4 +39,15 @@ korge {
 	targetIos()
 	targetAndroidIndirect() // targetAndroidDirect()
 	//targetAndroidDirect()
+}
+
+kotlin {
+	val napierVersion: String by project
+	sourceSets {
+		val commonMain by getting {
+			dependencies {
+				implementation("io.github.aakira:napier:$napierVersion")
+			}
+		}
+	}
 }
