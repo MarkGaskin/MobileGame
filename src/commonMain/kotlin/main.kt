@@ -369,24 +369,26 @@ fun Stage.animateMerge(positionList: MutableList<Position>) = launchImmediately 
 			Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.x},${position.y})\n" }}")
 			blocksMap.putAll(newPositionBlocks)
 
+
 			parallel{
 				for (i in 0 until gridColumns) {
-					sequence {
+					sequence{
 						newPositionBlocks.filter { (position, _) -> position.x == i }
 							.sortedByDescending { (position, _) -> position.y }
 							.forEach { (position, block) ->
-								val startingPosition = Position(position.x, 0)
-								addBlock(block).position(
-									getXFromPosition(startingPosition),
-									getYFromPosition(startingPosition)
-								).moveTo(
-									getXFromPosition(position),
-									getYFromPosition(position),
-									0.5.seconds,
-									Easing.EASE_SINE
-								)
+									val startingPosition = Position(position.x, -1)
+									addBlock(block).position(
+										getXFromPosition(startingPosition),
+										getYFromPosition(startingPosition)
+									).moveTo(
+										getXFromPosition(position),
+										getYFromPosition(position),
+										0.5.seconds,
+										Easing.EASE_SINE
+									)
+								}
+
 							}
-					}
 				}
 			}
 
