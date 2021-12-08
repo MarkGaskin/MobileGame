@@ -5,7 +5,7 @@ data class Position(val x: Int, val y: Int){
     init {
         require(x >= 0)
         require(x < gridColumns)
-        require(y >= 0)
+        require(y >= -1)
         require(y < gridRows)
     }
 }
@@ -88,5 +88,19 @@ private fun hasTwoMatchingAdjacents(position: Position, block: Block): Boolean {
 
 
 fun getAllEmptyPositions(): List<Position> {
-    return allPositions().mapNotNull { position -> if (blocksMap.containsKey(position)) position else null }
+    return allPositions().mapNotNull { position -> if (!blocksMap.containsKey(position)) position else null }
+}
+
+fun getRandomNumber(): Number {
+    return blocksMap.map { (_, block) ->
+                block.number.previous()
+            }.random()
+}
+
+fun generateBlocksForEmptyPositions(): List<Pair<Position, Block>> {
+    return getAllEmptyPositions().map { position ->
+                val selectedId = nextBlockId
+                nextBlockId++
+                Pair(position, Block(selectedId, getRandomNumber()))
+            }
 }

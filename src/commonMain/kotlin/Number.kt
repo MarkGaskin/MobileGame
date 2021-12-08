@@ -1,5 +1,6 @@
 import com.soywiz.korim.color.RGBA
 import kotlin.math.abs
+import kotlin.math.max
 
 enum class Number(val value: Int, val color: RGBA, val display: String) {
     ZERO(1, RGBA(240, 228, 218), "1"),
@@ -24,6 +25,8 @@ enum class Number(val value: Int, val color: RGBA, val display: String) {
     NINETEEN(1162261467, RGBA(166, 34, 172), "3^19");
 
     fun next() = values()[(ordinal + 1) % values().size]
+
+    fun previous() = values()[max((ordinal - 1),0) % values().size]
 }
 
 
