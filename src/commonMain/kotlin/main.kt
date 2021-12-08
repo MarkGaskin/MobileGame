@@ -131,7 +131,7 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 	Napier.d("Left indent = $leftIndent")
 	topIndent = 155
 
-	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#b9aea0"]) {
+	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e8"]) {
 		position(leftIndent, topIndent)
 	}
 
@@ -197,7 +197,7 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 	Napier.d("UI Initialized")
 
 
-	blocksMap = initializeBlocksMap ()
+	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
 
 
