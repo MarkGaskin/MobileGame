@@ -4,6 +4,7 @@ import com.soywiz.korge.animate.Animator
 import com.soywiz.korge.animate.animateSequence
 import com.soywiz.korge.view.*
 import com.soywiz.korge.input.*
+import com.soywiz.korge.service.storage.storage
 import com.soywiz.korge.tween.get
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
@@ -12,12 +13,16 @@ import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.text.TextAlignment
+import com.soywiz.korio.async.ObservableProperty
 import com.soywiz.korio.async.launchImmediately
 import com.soywiz.korma.interpolation.Easing
 import kotlin.properties.Delegates
 
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+
+val score = ObservableProperty(0)
+val best = ObservableProperty(0)
 
 var gridColumns: Int = 6
 var gridRows: Int = 6
@@ -100,24 +105,18 @@ fun getPositionFromPoint (point: Point): Position? {
 
 
 suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
-	/*
-	val minDegrees = (-16).degrees
-	val maxDegrees = (+16).degrees
-
-	val image = image(resourcesVfs["korge.png"].readBitmap()) {
-		rotation = maxDegrees
-		anchor(.5, .5)
-		scale(.8)
-		position(256, 256)
-	}
-
-	while (false) {
-		image.tween(image::rotation[minDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-		image.tween(image::rotation[maxDegrees], time = 1.seconds, easing = Easing.EASE_IN_OUT)
-	}
-	*/
-
 	Napier.base(DebugAntilog())
+
+	val storage = views.storage
+	best.update(storage.getOrNull("best")?.toInt() ?: 0)
+
+	score.observe {
+		if (it > best.value) best.update(it)
+	}
+	best.observe {
+		// new code line here
+		storage["best"] = it.toString()
+	}
 
 	font = resourcesVfs["clear_sans.fnt"].readBitmapFont()
 
@@ -149,7 +148,7 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 	val bgLogo = roundRect(cellSize, cellSize, 5, fill = Colors["#6a00b0"]) {
 		position(leftIndent + cellIndentSize, 12)
 	}
-	text("Tr.io", cellSize * 0.5, Colors.WHITE, font).centerOn(bgLogo)
+	text("tr.io", cellSize * 0.5, Colors.WHITE, font).centerOn(bgLogo)
 
 	val bgBest = roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#bbae9e"]) {
 		alignRightToRightOf(backgroundRect)
@@ -159,12 +158,14 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgBest)
 		alignTopToTopOf(bgBest, 3.0)
 	}
-	text((blocksMap.size + 1).toString(), cellSize * 1.0, Colors.WHITE, font) {
-
+	text(best.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
 		alignTopToTopOf(bgBest, 5.0 + (cellSize*0.5) + 5.0)
 		centerXOn(bgBest)
+		best.observe {
+			text = it.toString()
+		}
 	}
 
 	val bgScore = roundRect(cellSize * 2.5, cellSize*1.5, 5.0, fill = Colors["#bbae9e"]) {
@@ -175,11 +176,14 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgScore)
 		alignTopToTopOf(bgScore, 3.0)
 	}
-	text(cellSize.toString(), cellSize * 1.0, Colors.WHITE, font) {
+	text(score.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
 		centerXOn(bgScore)
 		alignTopToTopOf(bgScore, 5.0 + (cellSize*0.5) + 5.0)
+		score.observe {
+			text = it.toString()
+		}
 	}
 
 	val restartImg = resourcesVfs["restart.png"].readBitmap()
@@ -325,12 +329,13 @@ fun Stage.unsuccessfulShape() {
 
 fun Stage.successfulShape() {
 	val pattern = determinePattern(hoveredPositions.toMutableList())
-	val scorePoints = determineScore(hoveredPositions.toMutableList())
+	val scoredPoints = determineScore(hoveredPositions.toMutableList())
 	Napier.d("Hovered position size ${hoveredPositions.size}")
 	val mergeMap= determineMerge(hoveredPositions.toMutableList())
 	Napier.d("Hovered position size ${hoveredPositions.size}")
 	hoveredPositions.clear()
 	animateMerge(mergeMap)
+	score.update(score.value + scoredPoints)
 	if (!hasAvailableMoves()){
 		Napier.d("Game Over!")
 	}
@@ -340,93 +345,74 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
 	startAnimating()
 	animateSequence {
 		parallel {
-			Napier.v("A")
+			Napier.v("Animating the blocks merging together")
 			mergeMap.forEach { (headPosition, valueAndMergePositions) ->
-				Napier.v("1")
 				val mergePositions = valueAndMergePositions.second
-				Napier.v("2")
 				mergePositions.forEach { position ->
-
-					Napier.d("Removing hovered ${position.log()}")
+					Napier.d("Moving block from ${position.log()} to new block")
 					blocksMap[position]!!.moveTo(
 						getXFromPosition(headPosition),
 						getYFromPosition(headPosition),
 						0.15.seconds,
 						Easing.LINEAR
 					)
-					Napier.v("3")
 				}
 
 			}
 		}
 		block {
-			Napier.v("B")
+			Napier.v("Animating deletion of previous blocks and adding new upgraded block")
 			parallel{
 				mergeMap.forEach { (headPosition, valueAndMergePositions) ->
 					valueAndMergePositions.second.forEach { position -> deleteBlock(blocksMap[position]!!) }
-					Napier.v("1")
 					val value = valueAndMergePositions.first
 					val newBlock = blocksMap[headPosition]!!.updateNumber(value).unselect().copy()
-					Napier.v("2")
 					deleteBlock(blocksMap[headPosition]!!)
-					Napier.v("3")
 					blocksMap[headPosition] = newBlock
-					Napier.v("4")
 					drawBlock(newBlock, headPosition)
-					Napier.v("5")
 				}
 			}
 		}
 		sequenceLazy {
-			Napier.v("C")
+			val newPositionBlocks = generateBlocksForEmptyPositions()
+			Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
+			blocksMap.putAll(newPositionBlocks)
+
+
 			parallel {
-				animateGravity()
+				newPositionBlocks
+					.forEach { (position, block) ->
+
+						val x = getXFromPosition(position)
+						val y = getYFromPosition(position)
+						val scale = block.scale
+
+						val newBlock =
+							addBlock(block).position(x + cellSize / 2, y + cellSize / 2).scale(0)
+
+						tween(
+							newBlock::x[x],
+							newBlock::y[y],
+							newBlock::scale[scale],
+							time = 0.3.seconds,
+							easing = Easing.EASE_SINE
+						)
+					}
 
 				mergeMap.forEach { (headPosition, _) ->
 					if (blocksMap[headPosition] != null) {
 						animateConsumption(blocksMap[headPosition]!!)
 					} else {
-						Napier.w("No block found for consumption at $headPosition")
+						Napier.w("No block found for consumption at ${headPosition.log()}")
 					}
 				}
 			}
-		}
-		sequenceLazy {
-			Napier.v("D")
-			val newPositionBlocks = generateBlocksForEmptyPositions()
-			Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.x},${position.y})\n" }}")
-			blocksMap.putAll(newPositionBlocks)
-
-
-			parallel{
-				for (i in 0 until gridColumns) {
-					sequence {
-						newPositionBlocks.filter { (position, _) -> position.x == i }
-							.sortedByDescending { (position, _) -> position.y }
-							.forEach { (position, block) ->
-								val startingPosition = Position(position.x, -1)
-								addBlock(block).position(
-									getXFromPosition(startingPosition),
-									getYFromPosition(startingPosition)
-								).moveTo(
-									getXFromPosition(position),
-									getYFromPosition(position),
-									0.5.seconds,
-									Easing.EASE_SINE
-								)
-							}
-					}
-				}
-			}
-
-
-
 		}
 	}
 	stopAnimating()
 }
 
-
+// Not used any more but left it in case of future changes
 fun Animator.animateGravity() {
 	parallel {
 		blocksMap = blocksMap.mapKeys { (position, block) ->
