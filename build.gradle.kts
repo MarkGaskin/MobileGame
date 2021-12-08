@@ -23,7 +23,7 @@ apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.sample.demo"
-	name = "Tri.io"
+	name = "tr.io"
 // To enable all targets at once
 
 	//targetAll()

@@ -1,3 +1,5 @@
+import com.soywiz.korio.stream.AsyncGetPositionStream
+import io.github.aakira.napier.Napier
 import kotlin.math.abs
 import kotlin.random.*
 
@@ -7,6 +9,9 @@ data class Position(val x: Int, val y: Int){
         require(x < gridColumns)
         require(y >= -1)
         require(y < gridRows)
+    }
+    fun log () {
+        "Position(${this.x},${this.y})"
     }
 }
 
@@ -109,8 +114,38 @@ fun getRandomNumber(): Number {
 
 fun generateBlocksForEmptyPositions(): List<Pair<Position, Block>> {
     return getAllEmptyPositions().map { position ->
-                val selectedId = nextBlockId
-                nextBlockId++
-                Pair(position, Block(selectedId, getRandomNumber()))
-            }
+        val selectedId = nextBlockId
+        nextBlockId++
+        Pair(position, Block(selectedId, getRandomNumber()))
+    }
+
+}
+
+fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, Pair<Number, List<Position>>> {
+    val mergeMap = mutableMapOf<Position, Pair<Number,List<Position>>>()
+    val pattern = determinePattern(positionList)
+    val nextNumber = blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
+    when (pattern) {
+        Pattern.TRIPLE -> {
+            val last = positionList.removeLast()
+            mergeMap[last] = Pair(nextNumber, positionList)
+        }
+        Pattern.O4 -> {
+            val last = positionList.removeLast()
+            val secondLast = positionList.removeLast()
+            mergeMap[last] = Pair(nextNumber, positionList.subList(0,1).toMutableList())
+            mergeMap[secondLast] = Pair(nextNumber, positionList.subList(1,2).toMutableList())
+        }
+        else -> {
+            val last = positionList.removeLast()
+            mergeMap[last] = Pair(nextNumber, positionList)
+        }
+    }
+
+    return mergeMap
+
+}
+
+fun determineScore(positionList: MutableList<Position>) : Int {
+    return positionList.map { position -> blocksMap[position]?.number?.value?: 0 }.fold(0,{a,b -> a + b})
 }

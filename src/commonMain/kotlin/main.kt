@@ -282,30 +282,13 @@ fun Stage.pressUp (maybePosition: Position?) {
 	}
 	isPressed = false
 	if (atLeastThreeSelected()) {
-		successfulShape(determinePattern(hoveredPositions))
+		successfulShape()
 	}
 	else
 	{
 		unsuccessfulShape()
 	}
 
-}
-
-fun Stage.unsuccessfulShape() {
-	Napier.d("Shape was unsuccessful ")
-	hoveredPositions
-		.forEach { position ->
-			blocksMap[position] = blocksMap[position]?.unselect()!!
-			Napier.d("Removing hovered Position(${position.x},${position.y})")
-			updateBlock(blocksMap[position]!!, position)
-			}
-	hoveredPositions.clear()
-}
-
-fun Stage.successfulShape(pattern: Pattern) {
-	val squareCount = pattern.getSquareCount()
-	animateMerge(hoveredPositions)
-	hoveredPositions.clear()
 }
 
 fun Container.pressDown (maybePosition: Position?) {
@@ -329,42 +312,87 @@ fun Container.pressDown (maybePosition: Position?) {
 	}
 }
 
-fun Stage.animateMerge(positionList: MutableList<Position>) = launchImmediately {
+fun Stage.unsuccessfulShape() {
+	Napier.d("Shape was unsuccessful ")
+	hoveredPositions
+		.forEach { position ->
+			blocksMap[position] = blocksMap[position]?.unselect()!!
+			Napier.d("Removing hovered ${position.log()}")
+			updateBlock(blocksMap[position]!!, position)
+			}
+	hoveredPositions.clear()
+}
+
+fun Stage.successfulShape() {
+	val pattern = determinePattern(hoveredPositions.toMutableList())
+	val scorePoints = determineScore(hoveredPositions.toMutableList())
+	Napier.d("Hovered position size ${hoveredPositions.size}")
+	val mergeMap= determineMerge(hoveredPositions.toMutableList())
+	Napier.d("Hovered position size ${hoveredPositions.size}")
+	hoveredPositions.clear()
+	animateMerge(mergeMap)
+	if (!hasAvailableMoves()){
+		Napier.d("Game Over!")
+	}
+}
+
+fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position>>>) = launchImmediately {
 	startAnimating()
-	val lastPosition = positionList.removeLast()
-	var accumulatedSum = 0
 	animateSequence {
 		parallel {
-			positionList.forEach { position ->
-				sequence {
-					parallel {
-						blocksMap[position]!!.moveTo(getXFromPosition(lastPosition), getYFromPosition(lastPosition), 0.15.seconds, Easing.LINEAR)
-						accumulatedSum += blocksMap[position]!!.number.value
-						deleteBlock(blocksMap[position]!!)
+			Napier.v("A")
+			mergeMap.forEach { (headPosition, valueAndMergePositions) ->
+				Napier.v("1")
+				val mergePositions = valueAndMergePositions.second
+				Napier.v("2")
+				mergePositions.forEach { position ->
+
+					Napier.d("Removing hovered ${position.log()}")
+					blocksMap[position]!!.moveTo(
+						getXFromPosition(headPosition),
+						getYFromPosition(headPosition),
+						0.15.seconds,
+						Easing.LINEAR
+					)
+					Napier.v("3")
+				}
+
+			}
+		}
+		block {
+			Napier.v("B")
+			parallel{
+				mergeMap.forEach { (headPosition, valueAndMergePositions) ->
+					valueAndMergePositions.second.forEach { position -> deleteBlock(blocksMap[position]!!) }
+					Napier.v("1")
+					val value = valueAndMergePositions.first
+					val newBlock = blocksMap[headPosition]!!.updateNumber(value).unselect().copy()
+					Napier.v("2")
+					deleteBlock(blocksMap[headPosition]!!)
+					Napier.v("3")
+					blocksMap[headPosition] = newBlock
+					Napier.v("4")
+					drawBlock(newBlock, headPosition)
+					Napier.v("5")
+				}
+			}
+		}
+		sequenceLazy {
+			Napier.v("C")
+			parallel {
+				animateGravity()
+
+				mergeMap.forEach { (headPosition, _) ->
+					if (blocksMap[headPosition] != null) {
+						animateConsumption(blocksMap[headPosition]!!)
+					} else {
+						Napier.w("No block found for consumption at $headPosition")
 					}
 				}
 			}
 		}
-		block {
-			val newBlock = blocksMap[lastPosition]!!.add(accumulatedSum).unselect().copy()
-			deleteBlock(blocksMap[lastPosition]!!)
-			blocksMap[lastPosition] = newBlock
-			drawBlock(newBlock, lastPosition)
-		}
 		sequenceLazy {
-			parallel {
-				animateGravity()
-				if (blocksMap[lastPosition] != null)
-				{
-					animateConsumption(blocksMap[lastPosition]!!)
-				}
-				else
-				{
-					Napier.w("No block found for consumption at $lastPosition")
-				}
-			}
-		}
-		sequenceLazy {
+			Napier.v("D")
 			val newPositionBlocks = generateBlocksForEmptyPositions()
 			Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.x},${position.y})\n" }}")
 			blocksMap.putAll(newPositionBlocks)
@@ -372,23 +400,22 @@ fun Stage.animateMerge(positionList: MutableList<Position>) = launchImmediately 
 
 			parallel{
 				for (i in 0 until gridColumns) {
-					sequence{
+					sequence {
 						newPositionBlocks.filter { (position, _) -> position.x == i }
 							.sortedByDescending { (position, _) -> position.y }
 							.forEach { (position, block) ->
-									val startingPosition = Position(position.x, -1)
-									addBlock(block).position(
-										getXFromPosition(startingPosition),
-										getYFromPosition(startingPosition)
-									).moveTo(
-										getXFromPosition(position),
-										getYFromPosition(position),
-										0.5.seconds,
-										Easing.EASE_SINE
-									)
-								}
-
+								val startingPosition = Position(position.x, -1)
+								addBlock(block).position(
+									getXFromPosition(startingPosition),
+									getYFromPosition(startingPosition)
+								).moveTo(
+									getXFromPosition(position),
+									getYFromPosition(position),
+									0.5.seconds,
+									Easing.EASE_SINE
+								)
 							}
+					}
 				}
 			}
 
