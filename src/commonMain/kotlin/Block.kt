@@ -20,7 +20,7 @@ data class Block(val id: Int, var number: Number, var isSelected: Boolean = fals
         roundRect(cellSize, cellSize, 5, fill = number.color, stroke = if (isSelected) Colors["#6a00b0"] else number.color, strokeThickness = 4.0)
 
         val textColor = when (number) {
-            ZERO, ONE -> Colors.BLACK
+            ZERO, ONE, TWO, FOUR -> Colors.BLACK
             else -> Colors.WHITE
         }
         text(number.display, textSizeFor(number), textColor, font).apply {
