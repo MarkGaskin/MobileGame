@@ -18,7 +18,8 @@ enum class Pattern() {
     V5,
     W5,
     I5,
-    I6;
+    I6,
+    O9;
 
     fun getSquareCount (): Int {
         return when (this) {
@@ -36,6 +37,7 @@ enum class Pattern() {
                     W5,
                     I5 -> 5
                     I6 -> 6
+                    O9 -> 9
                 }
     }
 }
@@ -78,7 +80,6 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
             Napier.v("Pattern U5 found")
             return Pattern.U5
         }
-
     }
     else if (positionList.size == 6) {
         if ((positionList.all { position -> positionList.filter { newPosition -> position.x == newPosition.x }.size == 6 }) ||
@@ -92,7 +93,35 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
             Napier.v("Pattern U5 found")
             return Pattern.U5
         }
-
+    }
+    else if (positionList.size == 8) {
+        val xList = positionList.map { position -> position.x }
+        val xMax = xList.maxOrNull() ?: 20
+        val xMin = xList.minOrNull() ?: 0
+        val yList = positionList.map { position -> position.y }
+        val yMax = yList.maxOrNull() ?: 20
+        val yMin = yList.minOrNull() ?: 0
+        if ( yMax - yMin == 3 && xMax - xMin == 3){
+            Napier.v("Pattern O9 found")
+            return Pattern.O9
+        }
+        else
+        {
+            Napier.v("Pattern U5 found")
+            return Pattern.U5
+        }
+    }
+    else if (positionList.size == 9) {
+        if ((positionList.all { position -> positionList.filter { newPosition -> position.x == newPosition.x}.size == 3 }) &&
+            (positionList.all { position -> positionList.filter { newPosition -> position.y == newPosition.y}.size == 3 })) {
+            Napier.v("Pattern O9 found")
+            return Pattern.O9
+        }
+        else
+        {
+            Napier.v("Pattern U5 found")
+            return Pattern.U5
+        }
     }
     else
     {

@@ -1,6 +1,7 @@
 import com.soywiz.korio.stream.AsyncGetPositionStream
 import io.github.aakira.napier.Napier
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.random.*
 
 data class Position(val x: Int, val y: Int){
@@ -124,7 +125,13 @@ fun generateBlocksForEmptyPositions(): List<Pair<Position, Block>> {
 fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, Pair<Number, List<Position>>> {
     val mergeMap = mutableMapOf<Position, Pair<Number,List<Position>>>()
     val pattern = determinePattern(positionList)
-    val nextNumber = blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
+
+    val nextNumber =
+        when (positionList.size) {
+            in 0..5 -> blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
+            in 6..18 -> blocksMap[positionList.first()]?.number?.next()?.next() ?: Number.ZERO
+            else -> blocksMap[positionList.first()]?.number?.next()?.next()?.next() ?: Number.ZERO
+        }
     when (pattern) {
         Pattern.TRIPLE -> {
             val last = positionList.removeLast()
@@ -144,7 +151,7 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             val mergeList =
                 if (first.x == last.x) {
                     blocksMap.filter { (position, _) -> position.x == first.x}
-                             .toList()
+                        .toList()
                 }
                 else {
                     blocksMap.filter { (position, _) -> position.y == first.y }
@@ -165,7 +172,7 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             val mergeList =
                 if (first.x == last.x) {
                     blocksMap.filter { (position, _) -> position.x == first.x || position.y == last.y}
-                             .toList()
+                        .toList()
                 }
                 else {
                     blocksMap.filter { (position, _) -> position.y == first.y || position.x == last.x }
@@ -222,6 +229,14 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             mergeMap[first] = Pair(upgradedNumberFirst, mergeListFirst.map {(position, _) -> position }.filter { position -> position != first })
             mergeMap[last] = Pair(upgradedNumberLast, mergeListLast.map {(position, _) -> position }.filter { position -> position != last })
         }
+        Pattern.O9 -> {
+            val xList = positionList.map { position -> position.x }
+            val xAvg = xList.average().roundToInt()
+            val yList = positionList.map { position -> position.y }
+            val yAvg = yList.average().roundToInt()
+            val center = Position(xAvg, yAvg)
+            mergeMap[center] = Pair(nextNumber.next().next(), positionList.filter {position -> position != center}.toMutableList())
+        }
         else -> {
             val last = positionList.removeLast()
             mergeMap[last] = Pair(nextNumber, positionList)
@@ -229,8 +244,9 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
     }
 
     return mergeMap
-
 }
+
+
 
 fun determineScore(positionList: MutableList<Position>) : Int {
     return positionList.map { position -> blocksMap[position]?.number?.value?: 0 }.fold(0,{a,b -> a + b})
