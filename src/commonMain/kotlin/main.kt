@@ -336,9 +336,6 @@ fun Stage.successfulShape() {
 	hoveredPositions.clear()
 	animateMerge(mergeMap)
 	score.update(score.value + scoredPoints)
-	if (!hasAvailableMoves()){
-		Napier.d("Game Over!")
-	}
 }
 
 fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position>>>) = launchImmediately {
@@ -408,8 +405,13 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
 				}
 			}
 		}
+		block {
+			stopAnimating()
+			if (!hasAvailableMoves()) {
+				Napier.d("Game Over!")
+			}
+		}
 	}
-	stopAnimating()
 }
 
 // Not used any more but left it in case of future changes

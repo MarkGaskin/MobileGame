@@ -17,7 +17,8 @@ enum class Pattern() {
     Z5,
     V5,
     W5,
-    I5;
+    I5,
+    I6;
 
     fun getSquareCount (): Int {
         return when (this) {
@@ -34,6 +35,7 @@ enum class Pattern() {
                     V5,
                     W5,
                     I5 -> 5
+                    I6 -> 6
                 }
     }
 }
@@ -63,6 +65,34 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
             Napier.v("Pattern Z4 found")
             return Pattern.Z4
         }
+    }
+    else if (positionList.size == 5) {
+        if ((positionList.all { position -> positionList.filter { newPosition -> position.x == newPosition.x }.size == 5 }) ||
+            (positionList.all { position -> positionList.filter { newPosition -> position.y == newPosition.y }.size == 5 })
+        ) {
+            Napier.v("Pattern I5 found")
+            return Pattern.I5
+        }
+        else
+        {
+            Napier.v("Pattern U5 found")
+            return Pattern.U5
+        }
+
+    }
+    else if (positionList.size == 6) {
+        if ((positionList.all { position -> positionList.filter { newPosition -> position.x == newPosition.x }.size == 6 }) ||
+            (positionList.all { position -> positionList.filter { newPosition -> position.y == newPosition.y }.size == 6 })
+        ) {
+            Napier.v("Pattern I6 found")
+            return Pattern.I6
+        }
+        else
+        {
+            Napier.v("Pattern U5 found")
+            return Pattern.U5
+        }
+
     }
     else
     {

@@ -10,8 +10,8 @@ data class Position(val x: Int, val y: Int){
         require(y >= -1)
         require(y < gridRows)
     }
-    fun log () {
-        "Position(${this.x},${this.y})"
+    fun log (): String {
+        return "Position(${this.x},${this.y})"
     }
 }
 
@@ -67,7 +67,7 @@ private fun tryAdjacentPositions(position:Position, direction: Direction) =
             Direction.LEFT -> Position(position.x - 1, position.y)
             Direction.RIGHT -> Position(position.x + 1, position.y)
             Direction.TOP -> Position(position.x, position.y + 1)
-            Direction.BOTTOM ->  Position(position.x - 1, position.y - 1)
+            Direction.BOTTOM ->  Position(position.x, position.y - 1)
         }
     }
     catch (e: IllegalArgumentException) {
@@ -135,6 +135,92 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             val secondLast = positionList.removeLast()
             mergeMap[last] = Pair(nextNumber, positionList.subList(0,1).toMutableList())
             mergeMap[secondLast] = Pair(nextNumber, positionList.subList(1,2).toMutableList())
+        }
+        Pattern.I4 -> {
+
+            val last = positionList.last()
+            val first = positionList.first()
+
+            val mergeList =
+                if (first.x == last.x) {
+                    blocksMap.filter { (position, _) -> position.x == first.x}
+                             .toList()
+                }
+                else {
+                    blocksMap.filter { (position, _) -> position.y == first.y }
+                        .toList()
+                }
+            val mergeSum =
+                mergeList
+                    .map { (_, block) -> block.number.value}
+                    .fold (0, {a,b -> a + b })
+            val upgradedNumber = findClosestRoundedUp(mergeSum)
+            mergeMap[last] = Pair(upgradedNumber, mergeList.map {(position, _) -> position }.filter { position -> position != last })
+        }
+        Pattern.I5 -> {
+
+            val last = positionList.last()
+            val first = positionList.first()
+
+            val mergeList =
+                if (first.x == last.x) {
+                    blocksMap.filter { (position, _) -> position.x == first.x || position.y == last.y}
+                             .toList()
+                }
+                else {
+                    blocksMap.filter { (position, _) -> position.y == first.y || position.x == last.x }
+                        .toList()
+                }
+            val mergeSum =
+                mergeList
+                    .map { (_, block) -> block.number.value}
+                    .fold (0, {a,b -> a + b })
+            val upgradedNumber = findClosestRoundedUp(mergeSum)
+            mergeMap[last] = Pair(upgradedNumber, mergeList.map {(position, _) -> position }.filter { position -> position != last })
+        }
+        Pattern.I6 -> {
+
+            val last = positionList.last()
+            val first = positionList.first()
+
+            val mergeListFirst =
+                if (first.x == last.x) {
+                    blocksMap.filter { (position, _) -> (position.x == last.x && (position.y - first.y) < (last.y - position.y)) || position.y == first.y}
+                        .toList()
+                }
+                else {
+                    blocksMap.filter { (position, _) -> (position.y == last.y && (position.x - first.x) < (last.x - position.x)) || position.x == first.x }
+                        .toList()
+                }
+
+            Napier.v("MergeListFirst size ${mergeListFirst.size}")
+
+            val mergeSumFirst =
+                mergeListFirst
+                    .map { (_, block) -> block.number.value}
+                    .fold (0, {a,b -> a + b })
+            val upgradedNumberFirst = findClosestRoundedUp(mergeSumFirst)
+
+
+            val mergeListLast =
+                if (first.x == last.x) {
+                    blocksMap.filter { (position, _) -> (position.x == first.x && (position.y - first.y) > (last.y - position.y)) || position.y == last.y}
+                        .toList()
+                }
+                else {
+                    blocksMap.filter { (position, _) -> (position.y == first.y && (position.x - first.x) > (last.x - position.x)) || position.x == last.x }
+                        .toList()
+                }
+
+            Napier.v("MergeListLast size ${mergeListFirst.size}")
+
+            val mergeSumLast =
+                mergeListLast
+                    .map { (_, block) -> block.number.value}
+                    .fold (0, {a,b -> a + b })
+            val upgradedNumberLast = findClosestRoundedUp(mergeSumLast)
+            mergeMap[first] = Pair(upgradedNumberFirst, mergeListFirst.map {(position, _) -> position }.filter { position -> position != first })
+            mergeMap[last] = Pair(upgradedNumberLast, mergeListLast.map {(position, _) -> position }.filter { position -> position != last })
         }
         else -> {
             val last = positionList.removeLast()

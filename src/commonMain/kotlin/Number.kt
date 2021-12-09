@@ -34,3 +34,5 @@ enum class Number(val value: Int, val color: RGBA, val display: String) {
 
 
 fun findClosest (comparisonValue: Int) = Number.values().minByOrNull { number -> abs(number.value - comparisonValue) }!!
+
+fun findClosestRoundedUp (comparisonValue: Int) = Number.values().find { number -> number.value > comparisonValue }!!
