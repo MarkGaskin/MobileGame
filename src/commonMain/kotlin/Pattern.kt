@@ -12,20 +12,8 @@ enum class Pattern() {
     I5,
     D6,
     I6,
+    D8,
     O9;
-
-    fun getSquareCount (): Int {
-        return when (this) {
-                    UNDETERMINED -> 0
-                    TRIPLE -> 3
-                    O4,
-                    I4,-> 4
-                    I5 -> 5
-                    D6,
-                    I6 -> 6
-                    O9 -> 9
-                }
-    }
 }
 
 fun determinePattern(positionList: MutableList<Position>): Pattern {
@@ -92,10 +80,14 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
         val yMax = yList.maxOrNull() ?: 20
         val yMin = yList.minOrNull() ?: 0
         val yAvg = yList.average()
-        if ( yMax - yMin == 3 && xMax - xMin == 3 && xAvg == (xMax + xMin) / 2.0 && yAvg == (yMax + yMin) / 2.0){
+        if ( yMax - yMin == 2 && xMax - xMin == 2 && xAvg == (xMax + xMin) / 2.0 && yAvg == (yMax + yMin) / 2.0){
             Napier.v("Pattern O9 found")
             return Pattern.O9
         }
+        else if ( (yMax - yMin == 1 && xMax - xMin == 3) || (yMax - yMin == 3 && xMax - xMin == 1) ){
+                Napier.v("Pattern D8 found")
+                return Pattern.D8
+            }
         else
         {
             Napier.v("Non special 8 square pattern found")

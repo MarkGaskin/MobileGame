@@ -1,6 +1,7 @@
 import com.soywiz.korio.stream.AsyncGetPositionStream
 import io.github.aakira.napier.Napier
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.random.*
 
@@ -30,6 +31,7 @@ enum class Direction {
     LEFT, RIGHT, TOP, BOTTOM
 }
 
+
 fun initBlock (): Block {
     val selectedId = nextBlockId
     nextBlockId++;
@@ -38,6 +40,11 @@ fun initBlock (): Block {
             else if (random >= 0.1 && random < 0.2) Block(id = selectedId, Number.TWO)
             else if (random >= 0.2 && random < 0.5) Block(id = selectedId, Number.ONE)
             else Block(id = selectedId, Number.ZERO)
+}
+fun initOneBlock (): Block {
+    val selectedId = nextBlockId
+    nextBlockId++;
+    return Block(id = selectedId, Number.ZERO)
 }
 
 fun initBlock (index: Int): Block {
@@ -49,6 +56,10 @@ fun initBlock (index: Int): Block {
 
 fun initializeRandomBlocksMap (): MutableMap<Position, Block> {
     return allPositions().map { position -> Pair(position, initBlock()) }.toMap().toMutableMap()
+}
+
+fun initializeOnesBlocksMap (): MutableMap<Position, Block> {
+    return allPositions().map { position -> Pair(position, initOneBlock()) }.toMap().toMutableMap()
 }
 
 fun initializeFixedBlocksMap (): MutableMap<Position, Block> {
@@ -230,19 +241,13 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             mergeMap[last] = Pair(upgradedNumberLast, mergeListLast.map {(position, _) -> position }.filter { position -> position != last })
         }
         Pattern.D6 -> {
-
             val last = positionList.last()
-
             val xList = positionList.map { position -> position.x }
-            val xAvg = xList.average().roundToInt()
             val xMax = xList.maxOrNull() ?: 100
             val xMin = xList.minOrNull() ?: 0
             val yList = positionList.map { position -> position.y }
-            val yAvg = yList.average().roundToInt()
             val yMax = yList.maxOrNull() ?: 100
             val yMin = yList.minOrNull() ?: 0
-
-
 
             if (xMax - xMin == 1){
                 val mergeX = if (last.x == xMax) xMin else xMax
@@ -256,7 +261,28 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
                     mergeMap[Position(xMin + i, last.y)] = Pair(nextNumber.previous(), listOf(Position(xMin + i,mergeY)))
                 }
             }
+        }
+        Pattern.D8 -> {
+            val last = positionList.last()
+            val xList = positionList.map { position -> position.x }
+            val xMax = xList.maxOrNull() ?: 100
+            val xMin = xList.minOrNull() ?: 0
+            val yList = positionList.map { position -> position.y }
+            val yMax = yList.maxOrNull() ?: 100
+            val yMin = yList.minOrNull() ?: 0
 
+            if (xMax - xMin == 1){
+                val mergeX = if (last.x == xMax) xMin else xMax
+                for (i in 0 until 4){
+                    mergeMap[Position(last.x,yMin + i)] = Pair(nextNumber.previous(), listOf(Position(mergeX,yMin + i)))
+                }
+            }
+            else{
+                val mergeY = if (last.y == yMax) yMin else yMax
+                for (i in 0 until 4){
+                    mergeMap[Position(xMin + i, last.y)] = Pair(nextNumber.previous(), listOf(Position(xMin + i,mergeY)))
+                }
+            }
         }
         Pattern.O9 -> {
             val xList = positionList.map { position -> position.x }
@@ -264,7 +290,8 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             val yList = positionList.map { position -> position.y }
             val yAvg = yList.average().roundToInt()
             val center = Position(xAvg, yAvg)
-            mergeMap[center] = Pair(nextNumber.next().next(), positionList.filter {position -> position != center}.toMutableList())
+            val updatedNextNumber = Number.values()[max(nextNumber.ordinal, blocksMap[center]?.number?.ordinal ?: 0)]
+            mergeMap[center] = Pair(updatedNextNumber.next().next(), positionList.filter {position -> position != center}.toMutableList())
         }
         else -> {
             val last = positionList.removeLast()
