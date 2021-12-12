@@ -229,6 +229,35 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             mergeMap[first] = Pair(upgradedNumberFirst, mergeListFirst.map {(position, _) -> position }.filter { position -> position != first })
             mergeMap[last] = Pair(upgradedNumberLast, mergeListLast.map {(position, _) -> position }.filter { position -> position != last })
         }
+        Pattern.D6 -> {
+
+            val last = positionList.last()
+
+            val xList = positionList.map { position -> position.x }
+            val xAvg = xList.average().roundToInt()
+            val xMax = xList.maxOrNull() ?: 100
+            val xMin = xList.minOrNull() ?: 0
+            val yList = positionList.map { position -> position.y }
+            val yAvg = yList.average().roundToInt()
+            val yMax = yList.maxOrNull() ?: 100
+            val yMin = yList.minOrNull() ?: 0
+
+
+
+            if (xMax - xMin == 1){
+                val mergeX = if (last.x == xMax) xMin else xMax
+                for (i in 0 until 3){
+                    mergeMap[Position(last.x,yMin + i)] = Pair(nextNumber.previous(), listOf(Position(mergeX,yMin + i)))
+                }
+            }
+            else{
+                val mergeY = if (last.y == yMax) yMin else yMax
+                for (i in 0 until 3){
+                    mergeMap[Position(xMin + i, last.y)] = Pair(nextNumber.previous(), listOf(Position(xMin + i,mergeY)))
+                }
+            }
+
+        }
         Pattern.O9 -> {
             val xList = positionList.map { position -> position.x }
             val xAvg = xList.average().roundToInt()
