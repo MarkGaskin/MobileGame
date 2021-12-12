@@ -1,3 +1,4 @@
+import com.soywiz.klock.blockingSleep
 import com.soywiz.klock.seconds
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.Animator
@@ -66,6 +67,8 @@ var hoveredPositions: MutableList<Position> = mutableListOf()
 var isAnimating: Boolean = false
 fun startAnimating() { isAnimating = true }
 fun stopAnimating() { isAnimating = false }
+
+var showingRestart: Boolean = false
 
 
 fun getPositionFromPoint (point: Point): Position? {
@@ -137,6 +140,13 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e8"]) {
 		position(leftIndent, topIndent)
+
+
+
+		touch {
+			onDown { if (!isAnimating && !showingRestart) pressDown(getPositionFromPoint(mouseXY)) }
+			onMove { if (!isAnimating && !showingRestart) hoverBlock(getPositionFromPoint(mouseXY))  }
+		}
 	}
 
 	graphics {
@@ -203,8 +213,13 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		alignTopToBottomOf(bgLogo, 5)
 		alignRightToRightOf(bgLogo)
 		onClick {
-			this@Korge.showRestart{}
-			Napier.w("Restart Button Clicked")
+			if(!showingRestart) {
+				this@Korge.showRestart { this@Korge.restart() }
+				Napier.w("Restart Button Clicked")
+			}
+			else{
+				Napier.w("Restart Button Clicked when already showing restart")
+			}
 		}
 	}
 	Napier.d("UI Initialized")
@@ -215,8 +230,6 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 
 	touch {
-		onDown { if (!isAnimating) pressDown(getPositionFromPoint(mouseXY)) }
-		onMove { if (!isAnimating) hoverBlock(getPositionFromPoint(mouseXY))  }
 		onUp { if (!isAnimating) pressUp(getPositionFromPoint(mouseXY)) }
 	}
 
@@ -287,6 +300,7 @@ fun Container.hoverBlock (maybePosition: Position?) {
 }
 
 fun Container.showRestart(onRestart: () -> Unit) = container {
+	showingRestart = true
 	Napier.w("Showing Restart Container...")
 	fun restart() {
 		this@container.removeFromParent()
@@ -310,9 +324,10 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 		onDown { textColor = RGBA(120, 120, 120) }
 		onUp { textColor = RGBA(120, 120, 120) }
 		onClick {
-			this.restart()
-			this@container.removeFromParent()
 			Napier.w("Restart Button - YES Clicked")
+			restart()
+			showingRestart = false
+			this@container.removeFromParent()
 		}
 	}
 	uiText("No", 120.0, 35.0) {
@@ -325,8 +340,9 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 		onDown { textColor = RGBA(120, 120, 120) }
 		onUp { textColor = RGBA(120, 120, 120) }
 		onClick {
-			this@container.removeFromParent()
 			Napier.w("Restart Button - NO Clicked")
+			showingRestart = false
+			this@container.removeFromParent()
 		}
 	}
 	//	TODO: Somehow add background opacity that way he text is more visible
@@ -335,7 +351,7 @@ fun Container.restart() {
 	Napier.w("Running Restart Function...")
 	blocksMap.values.forEach { it.removeFromParent() }
 	blocksMap.clear()
-	blocksMap = initializeBlocksMap ()
+	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
 }
 
