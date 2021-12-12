@@ -23,7 +23,9 @@ apply<KorgeGradlePlugin>()
 
 korge {
 	id = "com.sample.demo"
-	name = "Tri.io"
+	name = "tr.io"
+
+	orientation=Orientation.PORTRAIT
 // To enable all targets at once
 
 	//targetAll()

@@ -47,6 +47,11 @@ data class Block(val id: Int, var number: Number, var isSelected: Boolean = fals
         return this
     }
 
+    fun updateNumber (numberValue: Number): Block {
+        this.number = numberValue
+        return this
+    }
+
     override fun equals(other: Any?): Boolean {
         return other is Block && this.id == other.id
     }
