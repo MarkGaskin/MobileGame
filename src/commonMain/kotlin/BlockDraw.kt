@@ -12,7 +12,7 @@ fun Container.deleteBlock(block: Block?) {
 
 
 fun Container.drawBlock (block: Block, position: Position) {
-    Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}, IsSelected ${block.isSelected}")
+    Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}, IsSelected ${block.selection}")
     blocksMap[position] = addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
     addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
 }
@@ -77,7 +77,7 @@ fun Container.drawBombHover (maybePosition: Position?) {
 fun Container.removeBombHover () {
     hoveredBombPositions.forEach { pos ->
         if (blocksMap[pos] != null) {
-            updateBlock(blocksMap[pos]!!.unselectBomb(), pos)
+            updateBlock(blocksMap[pos]!!.unselect(), pos)
         } else {
             Napier.e("drawBombHover tried to draw a surrounding block that is null")
         }
