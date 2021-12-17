@@ -147,7 +147,7 @@ fun Container.pressDown (maybePosition: Position?) {
 fun Container.hoverBlock (maybePosition: Position?) {
     if (maybePosition != null && (hoveredPositions.size > 0 && hoveredPositions.last() != maybePosition)) {
         if (blocksMap[maybePosition] == null) {
-            Napier.w("F found at Position(${maybePosition.x},${maybePosition.y})")
+            Napier.w("Null block found at Position(${maybePosition.x},${maybePosition.y})")
         } else if (hoveredPositions.size > 0 && !isValidTransition(
                 hoveredPositions.last(),
                 maybePosition
@@ -169,7 +169,17 @@ fun Container.hoverBlock (maybePosition: Position?) {
             Napier.v("Hovering Block at Position(${maybePosition.x},${maybePosition.y} from Position(${hoveredPositions.last().x},${hoveredPositions.last().y})")
             hoveredPositions.add(maybePosition)
             updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
-
         }
+        checkForHoveredPattern()
+    }
+}
+
+fun Container.checkForHoveredPattern(){
+    if (determinePattern(hoveredPositions).isPowerUp()){
+        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.selectPattern(), position) }
+    }
+    else
+    {
+        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.select(), position) }
     }
 }
