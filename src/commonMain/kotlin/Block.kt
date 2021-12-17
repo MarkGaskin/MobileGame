@@ -19,7 +19,7 @@ enum class BlockSelection () {
             UNSELECTED -> default
             NORMAL -> Colors["#6a00b0"]
             BOMB -> Colors["#990a00"]
-            PATTERN -> Colors["#fff170"]
+            PATTERN -> Colors["#db8504"]
         }
 }
 
@@ -49,6 +49,11 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
 
     fun selectBomb (): Block {
         this.selection = BlockSelection.BOMB
+        return this
+    }
+
+    fun selectPattern (): Block {
+        this.selection = BlockSelection.PATTERN
         return this
     }
 

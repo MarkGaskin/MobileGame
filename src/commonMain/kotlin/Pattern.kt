@@ -3,7 +3,6 @@ import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import io.github.aakira.napier.Napier
 
-// http://pentolla.com/images/Pieces.png
 enum class Pattern() {
     UNDETERMINED,
     TRIPLE,
@@ -12,8 +11,22 @@ enum class Pattern() {
     I5,
     D6,
     I6,
+    I7,
     D8,
     O9;
+    fun isPowerUp () =
+        when (this){
+            UNDETERMINED,
+            TRIPLE -> false
+            O4,
+            I4,
+            I5,
+            D6,
+            I6,
+            I7,
+            D8,
+            O9 -> true
+        }
 }
 
 fun determinePattern(positionList: MutableList<Position>): Pattern {
@@ -64,6 +77,19 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
         ) {
             Napier.v("Pattern D6 found")
             return Pattern.D6
+        }
+        else
+        {
+            Napier.v("Non special 6 square pattern found")
+            return Pattern.UNDETERMINED
+        }
+    }
+    else if (positionList.size == 7) {
+        if ((positionList.all { position -> positionList.filter { newPosition -> position.x == newPosition.x }.size == 7 }) ||
+            (positionList.all { position -> positionList.filter { newPosition -> position.y == newPosition.y }.size == 7 })
+        ) {
+            Napier.v("Pattern I7 found")
+            return Pattern.I7
         }
         else
         {
