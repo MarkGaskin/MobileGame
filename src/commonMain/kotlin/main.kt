@@ -1,3 +1,4 @@
+import com.soywiz.klock.blockingSleep
 import com.soywiz.klock.seconds
 import com.soywiz.korge.*
 import com.soywiz.korge.animate.Animator
@@ -6,6 +7,9 @@ import com.soywiz.korge.view.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.service.storage.storage
 import com.soywiz.korge.tween.get
+import com.soywiz.korge.ui.textColor
+import com.soywiz.korge.ui.textSize
+import com.soywiz.korge.ui.uiText
 import com.soywiz.korim.color.*
 import com.soywiz.korim.format.*
 import com.soywiz.korio.file.std.*
@@ -35,6 +39,8 @@ var leftIndent: Int = 0
 var topIndent: Int = 0
 var nextBlockId = 0
 
+var fieldSize: Double = 0.0
+
 var isPressed = false
 fun press() {
 	isPressed = true
@@ -61,6 +67,8 @@ var hoveredPositions: MutableList<Position> = mutableListOf()
 var isAnimating: Boolean = false
 fun startAnimating() { isAnimating = true }
 fun stopAnimating() { isAnimating = false }
+
+var showingRestart: Boolean = false
 
 
 fun getPositionFromPoint (point: Point): Position? {
@@ -132,6 +140,13 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e8"]) {
 		position(leftIndent, topIndent)
+
+
+
+		touch {
+			onDown { if (!isAnimating && !showingRestart) pressDown(getPositionFromPoint(mouseXY)) }
+			onMove { if (!isAnimating && !showingRestart) hoverBlock(getPositionFromPoint(mouseXY))  }
+		}
 	}
 
 	graphics {
@@ -197,6 +212,15 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		}
 		alignTopToBottomOf(bgLogo, 5)
 		alignRightToRightOf(bgLogo)
+		onClick {
+			if(!showingRestart) {
+				this@Korge.showRestart { this@Korge.restart() }
+				Napier.w("Restart Button Clicked")
+			}
+			else{
+				Napier.w("Restart Button Clicked when already showing restart")
+			}
+		}
 	}
 	Napier.d("UI Initialized")
 
@@ -206,8 +230,6 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 
 
 	touch {
-		onDown { if (!isAnimating) pressDown(getPositionFromPoint(mouseXY)) }
-		onMove { if (!isAnimating) hoverBlock(getPositionFromPoint(mouseXY))  }
 		onUp { if (!isAnimating) pressUp(getPositionFromPoint(mouseXY)) }
 	}
 
@@ -275,6 +297,62 @@ fun Container.hoverBlock (maybePosition: Position?) {
 
 		}
 	}
+}
+
+fun Container.showRestart(onRestart: () -> Unit) = container {
+	showingRestart = true
+	Napier.w("Showing Restart Container...")
+	fun restart() {
+		this@container.removeFromParent()
+		onRestart()
+	}
+
+	position(leftIndent, topIndent)
+
+	roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#FFFFFF33"])
+	text("Restart?", 60.0, Colors.BLACK, font) {
+		centerBetween(400.0, 400.0, fieldSize, fieldSize)
+		y -= 60
+	}
+	uiText("Yes", 120.0, 35.0) {
+		centerBetween(400.0, 400.0, fieldSize, fieldSize)
+		y += 20
+		textSize = 40.0
+		textColor = RGBA(0, 0, 0)
+		onOver { textColor = RGBA(90, 90, 90) }
+		onOut { textColor = RGBA(0, 0, 0) }
+		onDown { textColor = RGBA(120, 120, 120) }
+		onUp { textColor = RGBA(120, 120, 120) }
+		onClick {
+			Napier.w("Restart Button - YES Clicked")
+			restart()
+			showingRestart = false
+			this@container.removeFromParent()
+		}
+	}
+	uiText("No", 120.0, 35.0) {
+		centerBetween(550.0, 400.0, fieldSize, fieldSize)
+		y += 20
+		textSize = 40.0
+		textColor = RGBA(0, 0, 0)
+		onOver { textColor = RGBA(90, 90, 90) }
+		onOut { textColor = RGBA(0, 0, 0) }
+		onDown { textColor = RGBA(120, 120, 120) }
+		onUp { textColor = RGBA(120, 120, 120) }
+		onClick {
+			Napier.w("Restart Button - NO Clicked")
+			showingRestart = false
+			this@container.removeFromParent()
+		}
+	}
+	//	TODO: Somehow add background opacity that way he text is more visible
+}
+fun Container.restart() {
+	Napier.w("Running Restart Function...")
+	blocksMap.values.forEach { it.removeFromParent() }
+	blocksMap.clear()
+	blocksMap = initializeRandomBlocksMap ()
+	drawAllBlocks()
 }
 
 fun Stage.pressUp (maybePosition: Position?) {
