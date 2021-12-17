@@ -30,6 +30,7 @@ enum class Number(val value: Int, val color: RGBA, val display: String) {
     fun next() = values()[(ordinal + 1) % values().size]
 
     fun previous() = values()[max((ordinal - 1),0) % values().size]
+
 }
 
 
