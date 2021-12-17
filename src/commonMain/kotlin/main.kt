@@ -18,6 +18,7 @@ import kotlin.properties.Delegates
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 
+
 val score = ObservableProperty(0)
 val best = ObservableProperty(0)
 
@@ -55,6 +56,14 @@ var bomb1Loaded = ObservableProperty(true)
 var bomb1Selected = false
 var bomb2Loaded = ObservableProperty(false)
 var bomb2Selected = false
+var bomb1container: Container = Container()
+var bomb2container: Container = Container()
+
+var highestTierReached = 3
+
+var bombScaleNormal = 0.0
+var bombScaleSelected = 0.0
+
 
 
 
@@ -169,9 +178,10 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 	}
 
 
-	val bomb1container = container {
-		val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
-		val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
+	val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
+	val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
+
+	bomb1container = container {
 		val bombBackground = circle(40.0, Colors["#fae6b4"])
 		alignTopToBottomOf(backgroundRect, 18)
 		alignLeftToLeftOf(backgroundRect, fieldWidth/5)
@@ -193,6 +203,32 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			}
 		}
 	}
+	bomb2container = container {
+		val bombBackground = circle(40.0, Colors["#fae6b4"])
+		alignTopToBottomOf(backgroundRect, 18)
+		alignRightToRightOf(backgroundRect, fieldWidth/5)
+		image(if (bomb2Loaded.value) loadedBombImg else emptyBombImg ){
+			size(40 * .8, 40 * .8)
+			centerOn(bombBackground)
+		}
+		onClick {
+			if(bomb2Loaded.value) {
+				bomb2Selected = !bomb2Selected
+				animateBombSelection(this, bomb2Selected)
+			}
+		}
+		bomb2Loaded.observe {
+			this.removeChildrenIf{ index, _ -> index == 1}
+			image(if (bomb2Loaded.value) loadedBombImg else emptyBombImg ){
+				size(40 * .8, 40 * .8)
+				centerOn(bombBackground)
+			}
+		}
+	}
+
+
+	bombScaleNormal = bomb1container.scale
+	bombScaleSelected = bombScaleNormal * 1.2
 
 	Napier.d("UI Initialized")
 

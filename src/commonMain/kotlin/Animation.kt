@@ -42,6 +42,10 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
                     deleteBlock(blocksMap[headPosition]!!)
                     blocksMap[headPosition] = newBlock
                     drawBlock(newBlock, headPosition)
+                    if (value.ordinal > highestTierReached){
+                        tryAddBombs(value.ordinal - highestTierReached)
+                        highestTierReached = value.ordinal
+                    }
                 }
             }
         }
@@ -131,12 +135,11 @@ fun Stage.animateBombSelection(image: View, toggle: Boolean) = launchImmediately
     animateSequence {
         val x = image.x
         val y = image.y
-        val scale = image.scale
         if (toggle) {
             tween(
                 image::x[x - 4],
                 image::y[y - 4],
-                image::scale[scale * 1.1],
+                image::scale[bombScaleSelected],
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
             )
@@ -145,7 +148,7 @@ fun Stage.animateBombSelection(image: View, toggle: Boolean) = launchImmediately
             tween(
                 image::x[x + 4],
                 image::y[y + 4],
-                image::scale[scale / 1.1],
+                image::scale[bombScaleNormal],
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
             )
@@ -166,7 +169,7 @@ fun Stage.animateBomb() = launchImmediately {
                 blocksMap[position]!!.moveTo(
                     xDirection*1000,
                     yDirection*1000,
-                    1.seconds,
+                    0.8.seconds,
                     Easing.EASE_OUT_QUAD
                 )
             }

@@ -53,7 +53,8 @@ fun Container.handleDown(point: Point){
     when (true) {
         isAnimating -> return
         showingRestart -> return
-        bomb1Selected -> {
+        bomb1Selected,
+        bomb2Selected -> {
             isPressed = true
             drawBombHover(getPositionFromPoint(point)) }
         else -> {
@@ -67,7 +68,8 @@ fun Container.handleHover(point: Point){
         when (true) {
             isAnimating -> return
             showingRestart -> return
-            bomb1Selected ->{
+            bomb1Selected,
+            bomb2Selected ->{
                 removeBombHover()
                 drawBombHover(getPositionFromPoint(point))
             }
@@ -81,14 +83,42 @@ fun Stage.handleUp(point: Point){
     when (true) {
         isAnimating -> return
         showingRestart -> return
-        bomb1Selected ->{
+        bomb1Selected,
+        bomb2Selected ->{
             val maybePosition = getPositionFromPoint(point)
             if (maybePosition == null)
+            {
                 removeBombHover()
+            }
             else
+            {
                 animateBomb()
+                when (true) {
+                    bomb1Selected -> {
+                        bomb1Loaded.update(false)
+                        bomb1Selected = false
+                        animateBombSelection(bomb1container, bomb1Selected)
+                    }
+                    bomb2Selected -> {
+                        bomb2Loaded.update(false)
+                        bomb2Selected = false
+                        animateBombSelection(bomb2container, bomb2Selected)
+                    }
+                    else -> Napier.e("Animated bomb with no bomb selected")
+                }
+            }
+
         }
-        else -> pressUp(getPositionFromPoint(point))
+        else ->
+        {
+            if (atLeastThreeSelected()) {
+                successfulShape()
+            }
+            else
+            {
+                unsuccessfulShape()
+            }
+        }
     }
 }
 
@@ -110,25 +140,6 @@ fun Container.pressDown (maybePosition: Position?) {
     {
         Napier.w("Position parameter was null ")
     }
-}
-
-
-fun Stage.pressUp (maybePosition: Position?) {
-    isPressed = false
-    if (maybePosition is Position) {
-        Napier.v("Releasing Block at Position(${maybePosition.x},${maybePosition.y})")
-    }
-    else{
-        Napier.v("Releasing Block outside of field")
-    }
-    if (atLeastThreeSelected()) {
-        successfulShape()
-    }
-    else
-    {
-        unsuccessfulShape()
-    }
-
 }
 
 

@@ -57,7 +57,21 @@ fun Stage.successfulShape() {
     score.update(score.value + scoredPoints)
 }
 
-
+fun tryAddBombs(numberOfBombs: Int){
+    Napier.d("Trying to add $numberOfBombs bombs")
+    when (numberOfBombs){
+        1 -> when (true){
+            !bomb1Loaded.value -> bomb1Loaded.update(true)
+            !bomb2Loaded.value -> bomb2Loaded.update(true)
+            else -> Napier.d("Tried to add bomb when already full")
+        }
+        in 2..18 ->{
+            if (bomb1Loaded.value) bomb1Loaded.update(true)
+            if (bomb2Loaded.value) bomb2Loaded.update(true)
+        }
+        else -> Napier.e("Tried to add an unexpected number of bombs: $numberOfBombs")
+    }
+}
 
 fun Container.drawBombHover (maybePosition: Position?) {
     if (maybePosition != null) {
