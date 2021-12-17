@@ -13,11 +13,16 @@ fun Container.removeBlock(block: Block) {
 
 
 
-data class Block(val id: Int, var number: Number, var isSelected: Boolean = false) : Container() {
-
+data class Block(val id: Int, var number: Number, var isSelected: Boolean = false, var isBombSelected: Boolean = false) : Container() {
 
     init {
-        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = if (isSelected) Colors["#6a00b0"] else number.color, strokeThickness = 4.0)
+        roundRect(
+            cellSize, cellSize, 5, fill = number.color,
+            stroke = when (true){
+                      isBombSelected -> Colors["#990a00"]
+                      isSelected -> Colors["#6a00b0"]
+                      else -> number.color },
+            strokeThickness = 4.0)
 
         val textColor = when (number) {
             ZERO, ONE, TWO, FOUR -> Colors.BLACK
@@ -38,8 +43,18 @@ data class Block(val id: Int, var number: Number, var isSelected: Boolean = fals
         return this
     }
 
+    fun unselectBomb (): Block {
+        this.isBombSelected = false
+        return this
+    }
+
+    fun selectBomb (): Block {
+        this.isBombSelected = true
+        return this
+    }
+
     fun copy (): Block {
-        return Block(id, number, isSelected)
+        return Block(id, number, isSelected, isBombSelected)
     }
 
     fun add (numberValue: Int): Block {
@@ -65,3 +80,4 @@ private fun textSizeFor(number: Number) = when (number) {
     NINE, TEN -> cellSize * 2 / 5.0
     ELEVEN, TWELVE, THIRTEEN, FOURTEEN, FIFTEEN, SIXTEEN, SEVENTEEN, EIGHTEEN, NINETEEN -> cellSize / 2.0
 }
+

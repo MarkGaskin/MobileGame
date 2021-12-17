@@ -73,7 +73,7 @@ private fun getNumber(id: Int) = Number.values()[id]
 private fun getPosition(idx: Int) = Position(idx % gridColumns, idx / gridColumns)
 fun getIndex(position: Position) = position.x + position.y * gridColumns
 
-private fun tryAdjacentPositions(position:Position, direction: Direction) =
+private fun tryPositionInDirection(position:Position, direction: Direction) =
     try {
         when (direction) {
             Direction.NORTH -> Position(position.x, position.y + 1)
@@ -91,10 +91,10 @@ private fun tryAdjacentPositions(position:Position, direction: Direction) =
     }
 
 private fun tryAllAdjacentPositions(position: Position) =
-    getCardinalDirections().mapNotNull{ direction -> tryAdjacentPositions(position, direction) }
+    getCardinalDirections().mapNotNull{ direction -> tryPositionInDirection(position, direction) }
 
-private fun tryAllSurroundingPositions(position: Position) =
-    Direction.values().mapNotNull{ direction -> tryAdjacentPositions(position, direction) }
+fun tryAllSurroundingPositions(position: Position) =
+    Direction.values().mapNotNull{ direction -> tryPositionInDirection(position, direction) }
 
 fun isValidTransition(oldPosition: Position, newPosition: Position?): Boolean{
     return  if(newPosition is Position) {
