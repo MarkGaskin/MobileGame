@@ -36,11 +36,15 @@ fun initBlock (): Block {
     val selectedId = nextBlockId
     nextBlockId++;
     val random = Random.nextDouble()
-    return if (random < 0.1)  Block(id = selectedId, Number.THREE)
-            else if (random >= 0.1 && random < 0.2) Block(id = selectedId, Number.TWO)
-            else if (random >= 0.2 && random < 0.5) Block(id = selectedId, Number.ONE)
-            else Block(id = selectedId, Number.ZERO)
+    return when (true){
+        selectedId == random27ID -> Block(id=selectedId, Number.THREE)
+        random < 0.1 -> Block(id = selectedId, Number.THREE)
+        random < 0.2 -> Block(id = selectedId, Number.TWO)
+        random < 0.5 -> Block(id = selectedId, Number.ONE)
+        else -> Block(id = selectedId, Number.ZERO)
+    }
 }
+
 fun initOneBlock (): Block {
     val selectedId = nextBlockId
     nextBlockId++;
@@ -55,7 +59,7 @@ fun initBlock (index: Int): Block {
 
 
 fun initializeRandomBlocksMap (): MutableMap<Position, Block> {
-    return allPositions().map { position -> Pair(position, initBlock()) }.toMap().toMutableMap()
+    return allPositions().map { position ->Pair(position, initBlock()) }.toMap().toMutableMap()
 }
 
 fun initializeOnesBlocksMap (): MutableMap<Position, Block> {
@@ -126,9 +130,25 @@ fun getAllEmptyPositions(): List<Position> {
 }
 
 fun getRandomNumber(): Number {
-    return blocksMap.map { (_, block) ->
-                block.number.previous()
-            }.random()
+    val random = Random.nextDouble()
+    return when (blocksMap.maxOf { (_, block) -> block.number.ordinal }) {
+        in 0..5 -> {
+            when (true) {
+                random < 0.05 -> Number.THREE
+                random < 0.2 -> Number.TWO
+                random < 0.55 -> Number.ONE
+                else -> Number.ZERO
+            }
+        }
+        else -> {
+            when (true) {
+                random < 0.1 -> Number.THREE
+                random < 0.3 -> Number.TWO
+                random < 0.65 -> Number.ONE
+                else -> Number.ZERO
+            }
+        }
+    }
 }
 
 fun generateBlocksForEmptyPositions(): List<Pair<Position, Block>> {

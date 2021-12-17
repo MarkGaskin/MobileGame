@@ -17,6 +17,7 @@ import kotlin.properties.Delegates
 
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
+import kotlin.random.Random
 
 
 val score = ObservableProperty(0)
@@ -24,6 +25,8 @@ val best = ObservableProperty(0)
 
 var gridColumns: Int = 7
 var gridRows: Int = 7
+
+val random27ID = Random.nextInt(0,gridRows * gridColumns - 1)
 
 var cellIndentSize: Int = 8
 var cellSize: Int = 0
@@ -295,6 +298,8 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 fun Container.restart() {
 	Napier.w("Running Restart Function...")
 	score.update(0)
+	bomb1Loaded.update(true)
+	bomb2Loaded.update(false)
 	blocksMap.values.forEach { it.removeFromParent() }
 	blocksMap.clear()
 	blocksMap = initializeRandomBlocksMap ()
