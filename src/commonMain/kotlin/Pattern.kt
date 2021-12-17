@@ -12,6 +12,7 @@ enum class Pattern() {
     I5,
     D6,
     I6,
+    I7,
     D8,
     O9;
 }
@@ -64,6 +65,19 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
         ) {
             Napier.v("Pattern D6 found")
             return Pattern.D6
+        }
+        else
+        {
+            Napier.v("Non special 6 square pattern found")
+            return Pattern.UNDETERMINED
+        }
+    }
+    else if (positionList.size == 7) {
+        if ((positionList.all { position -> positionList.filter { newPosition -> position.x == newPosition.x }.size == 7 }) ||
+            (positionList.all { position -> positionList.filter { newPosition -> position.y == newPosition.y }.size == 7 })
+        ) {
+            Napier.v("Pattern I7 found")
+            return Pattern.I7
         }
         else
         {
