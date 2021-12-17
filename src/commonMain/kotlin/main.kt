@@ -28,8 +28,8 @@ import io.github.aakira.napier.Napier
 val score = ObservableProperty(0)
 val best = ObservableProperty(0)
 
-var gridColumns: Int = 6
-var gridRows: Int = 6
+var gridColumns: Int = 7
+var gridRows: Int = 7
 
 var cellIndentSize: Int = 8
 var cellSize: Int = 0
@@ -42,12 +42,6 @@ var nextBlockId = 0
 var fieldSize: Double = 0.0
 
 var isPressed = false
-fun press() {
-	isPressed = true
-}
-fun lift() {
-	isPressed = false
-}
 
 var font: BitmapFont by Delegates.notNull()
 
@@ -70,6 +64,10 @@ fun stopAnimating() { isAnimating = false }
 
 var showingRestart: Boolean = false
 
+var bomb1Loaded = ObservableProperty(true)
+var bomb1Selected = false
+var bomb2Loaded = ObservableProperty(false)
+var bomb2Selected = false
 
 fun getPositionFromPoint (point: Point): Position? {
 	Napier.d("Point x = ${point.x}, y = ${point.y}")
@@ -112,7 +110,7 @@ fun getPositionFromPoint (point: Point): Position? {
 }
 
 
-suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
+suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = RGBA(253, 247, 240)) {
 	Napier.base(DebugAntilog())
 
 	val storage = views.storage
@@ -191,7 +189,13 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgScore)
 		alignTopToTopOf(bgScore, 3.0)
 	}
+
+
+	//var bomb1Loaded = ObservableProperty(resourcesVfs["emptyBomb.png"].readBitmap())
+
 	text(score.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
+	//text(if (bomb1Loaded.value) {"1"} else {"ganga"} , cellSize * 1.0, Colors.WHITE, font) {
+	//text(bomb1Loaded.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
 		centerXOn(bgScore)
@@ -222,8 +226,34 @@ suspend fun main() = Korge(width = 480, height = 640, title = "2048", bgcolor = 
 			}
 		}
 	}
-	Napier.d("UI Initialized")
 
+
+	val bomb1container = container {
+		val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
+		val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
+		val bombBackground = circle(40.0, Colors["#fae6b4"])
+		alignTopToBottomOf(backgroundRect, 18)
+		alignLeftToLeftOf(backgroundRect, fieldWidth/5)
+		image(if (bomb1Loaded.value) loadedBombImg else emptyBombImg ){
+			size(40 * .8, 40 * .8)
+			centerOn(bombBackground)
+		}
+		onClick {
+			if(bomb1Loaded.value) {
+				bomb1Selected = !bomb1Selected
+				animateBomb(this, bomb1Selected)
+			}
+		}
+		bomb1Loaded.observe {
+			this.removeChildrenIf{ index, _ -> index == 1}
+			image(if (bomb1Loaded.value) loadedBombImg else emptyBombImg ){
+				size(40 * .8, 40 * .8)
+				centerOn(bombBackground)
+			}
+		}
+	}
+
+	Napier.d("UI Initialized")
 
 	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
@@ -415,6 +445,34 @@ fun Stage.successfulShape() {
 	animateMerge(mergeMap)
 	score.update(score.value + scoredPoints)
 }
+
+fun Stage.animateBomb(image: View, toggle: Boolean) = launchImmediately {
+	animateSequence {
+		val x = image.x
+		val y = image.y
+		val scale = image.scale
+		if (toggle) {
+			tween(
+				image::x[x - 4],
+				image::y[y - 4],
+				image::scale[scale * 1.1],
+				time = 0.1.seconds,
+				easing = Easing.LINEAR
+			)
+		}
+		else {
+			tween(
+				image::x[x + 4],
+				image::y[y + 4],
+				image::scale[scale / 1.1],
+				time = 0.1.seconds,
+				easing = Easing.LINEAR
+			)
+		}
+	}
+}
+
+
 
 fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position>>>) = launchImmediately {
 	startAnimating()
