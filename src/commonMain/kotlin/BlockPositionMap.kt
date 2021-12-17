@@ -1,4 +1,3 @@
-import com.soywiz.korio.stream.AsyncGetPositionStream
 import io.github.aakira.napier.Napier
 import kotlin.math.abs
 import kotlin.math.max
@@ -28,9 +27,10 @@ fun allPositions (): List<Position> {
 }
 
 enum class Direction {
-    LEFT, RIGHT, TOP, BOTTOM
+    NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST;
 }
 
+fun getCardinalDirections() = arrayOf(Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST)
 
 fun initBlock (): Block {
     val selectedId = nextBlockId
@@ -73,13 +73,17 @@ private fun getNumber(id: Int) = Number.values()[id]
 private fun getPosition(idx: Int) = Position(idx % gridColumns, idx / gridColumns)
 fun getIndex(position: Position) = position.x + position.y * gridColumns
 
-private fun tryAdjacentPositions(position:Position, direction: Direction) =
+private fun tryPositionInDirection(position:Position, direction: Direction) =
     try {
         when (direction) {
-            Direction.LEFT -> Position(position.x - 1, position.y)
-            Direction.RIGHT -> Position(position.x + 1, position.y)
-            Direction.TOP -> Position(position.x, position.y + 1)
-            Direction.BOTTOM ->  Position(position.x, position.y - 1)
+            Direction.NORTH -> Position(position.x, position.y + 1)
+            Direction.NORTHEAST -> Position(position.x + 1, position.y + 1)
+            Direction.EAST -> Position(position.x + 1, position.y)
+            Direction.SOUTHEAST -> Position(position.x + 1, position.y - 1)
+            Direction.SOUTH ->  Position(position.x, position.y - 1)
+            Direction.SOUTHWEST ->  Position(position.x - 1, position.y - 1)
+            Direction.WEST -> Position(position.x - 1, position.y)
+            Direction.NORTHWEST -> Position(position.x - 1, position.y + 1)
         }
     }
     catch (e: IllegalArgumentException) {
@@ -87,7 +91,10 @@ private fun tryAdjacentPositions(position:Position, direction: Direction) =
     }
 
 private fun tryAllAdjacentPositions(position: Position) =
-    Direction.values().mapNotNull{ direction -> tryAdjacentPositions(position, direction) }
+    getCardinalDirections().mapNotNull{ direction -> tryPositionInDirection(position, direction) }
+
+fun tryAllSurroundingPositions(position: Position) =
+    Direction.values().mapNotNull{ direction -> tryPositionInDirection(position, direction) }
 
 fun isValidTransition(oldPosition: Position, newPosition: Position?): Boolean{
     return  if(newPosition is Position) {
