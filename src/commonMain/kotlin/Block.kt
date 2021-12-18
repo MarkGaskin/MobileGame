@@ -33,7 +33,11 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
             else -> Colors.WHITE
         }
         text(number.display, textSizeFor(number), textColor, font).apply {
-            centerBetween(0.0, 0.0, cellSize*1.0, cellSize*1.0)
+            when (number.ordinal) {
+                0 -> centerBetween(0.0, 0.0, cellSize*1.0-4, cellSize*1.0)
+                else -> centerBetween(0.0, 0.0, cellSize*1.0, cellSize*1.0)
+            }
+
         }
     }
 

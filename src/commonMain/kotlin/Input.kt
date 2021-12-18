@@ -163,7 +163,7 @@ fun Container.hoverBlock (maybePosition: Position?) {
                 hoveredPositions[(hoveredPositions.size - 1)]
             )
             hoveredPositions.removeAt(hoveredPositions.size - 1)
-        } else if (blocksMap[maybePosition]?.selection == BlockSelection.NORMAL) {
+        } else if (hoveredPositions.contains(maybePosition)) {
             Napier.d("Block is already selected)")
         } else {
             Napier.v("Hovering Block at Position(${maybePosition.x},${maybePosition.y} from Position(${hoveredPositions.last().x},${hoveredPositions.last().y})")
