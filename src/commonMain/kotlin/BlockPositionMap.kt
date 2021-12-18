@@ -39,7 +39,7 @@ fun initBlock (): Block {
     val random = Random.nextDouble()
     return when {
         selectedId == random27ID -> Block(id=selectedId, Number.THREE)
-        random < 0.1 -> Block(id = selectedId, Number.THREE)
+        random < 0.05 -> Block(id = selectedId, Number.THREE)
         random < 0.2 -> Block(id = selectedId, Number.TWO)
         random < 0.5 -> Block(id = selectedId, Number.ONE)
         else -> Block(id = selectedId, Number.ZERO)

@@ -27,7 +27,7 @@ val best = ObservableProperty(0)
 var gridColumns: Int = 7
 var gridRows: Int = 7
 
-val random27ID = Random.nextInt(0,gridRows * gridColumns - 1)
+val random27ID = Random.nextInt(0,gridRows * gridColumns)
 
 var cellIndentSize: Int = 8
 var cellSize: Int = 0
