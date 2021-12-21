@@ -86,8 +86,9 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
         }
         block {
             stopAnimating()
-            if (!hasAvailableMoves()) {
+            if (!hasAvailableMoves() && !bomb1Loaded.value && !bomb2Loaded.value) {
                 Napier.d("Game Over!")
+                showGameOver { restart() }
             }
         }
     }
