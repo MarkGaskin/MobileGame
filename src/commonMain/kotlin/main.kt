@@ -177,7 +177,6 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			else{
 				Napier.w("Restart Button Clicked when already showing restart")
 			}
-			//this@Korge.showGameOver { this@Korge.restart() }
 		}
 	}
 
