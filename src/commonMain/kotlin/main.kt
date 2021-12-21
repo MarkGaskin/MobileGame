@@ -269,7 +269,6 @@ fun Container.showGameOver(onGameover: () -> Unit) = container {
 	}
 
 	uiText("Try again?", 120.0, 35.0) {
-		//centerBetween(365.0, 520.0, fieldSize, fieldSize)
 		centerXOn(bgTryagainText)
 		y -= -237
 		x += -5
