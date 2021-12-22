@@ -193,7 +193,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bomb1Loaded.value) {
+			if(bomb1Loaded.value && !showingRestart) {
 				bomb1Selected = !bomb1Selected
 				animateBombSelection(this, bomb1Selected)
 			}
@@ -215,7 +215,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bomb2Loaded.value) {
+			if(bomb2Loaded.value && !showingRestart) {
 				bomb2Selected = !bomb2Selected
 				animateBombSelection(this, bomb2Selected)
 			}
