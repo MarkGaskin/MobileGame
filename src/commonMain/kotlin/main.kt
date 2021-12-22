@@ -193,7 +193,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bomb1Loaded.value) {
+			if(bomb1Loaded.value && !showingRestart) {
 				bomb1Selected = !bomb1Selected
 				animateBombSelection(this, bomb1Selected)
 			}
@@ -215,7 +215,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bomb2Loaded.value) {
+			if(bomb2Loaded.value && !showingRestart) {
 				bomb2Selected = !bomb2Selected
 				animateBombSelection(this, bomb2Selected)
 			}
@@ -245,7 +245,47 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 }
 
+fun Container.showGameOver(onGameover: () -> Unit) = container {
+	Napier.w("Showing GameOver Container...")
+	fun restart() {
+		this@container.removeFromParent()
+		onGameover()
+	}
+	position(leftIndent, topIndent)
 
+	var bgGameOverContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
+	val bgGameOverText = roundRect(cellSize * 6.5, cellSize * 4.0, 25.0, fill = Colors["#aaa6a4"]) {
+		centerXOn(bgGameOverContainer)
+		y -= -110
+	}
+	val bgTryagainText = roundRect(cellSize * 4.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
+		centerXOn(bgGameOverText)
+		y -= -230
+	}
+
+	text("Game Over...", 60.0, Colors.BLACK, font, ) {
+		centerBetween(425.0, 0.0, fieldSize, fieldSize)
+		y -= -160
+	}
+
+	uiText("Try again?", 120.0, 35.0) {
+		centerXOn(bgTryagainText)
+		y -= -237
+		x += -5
+		textSize = 30.0
+		textColor = RGBA(0, 0, 0)
+		onOver { textColor = RGBA(90, 90, 90) }
+		onOut { textColor = RGBA(0, 0, 0) }
+		onDown { textColor = RGBA(120, 120, 120) }
+		onUp { textColor = RGBA(120, 120, 120) }
+		onClick {
+			Napier.w("Try again Button Clicked")
+			restart()
+			this@container.removeFromParent()
+		}
+	}
+
+}
 
 fun Container.showRestart(onRestart: () -> Unit) = container {
 	showingRestart = true
@@ -256,16 +296,30 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 	}
 
 	position(leftIndent, topIndent)
-
-	roundRect(fieldSize, fieldSize, 5.0, fill = Colors["#FFFFFF33"])
-	text("Restart?", 60.0, Colors.BLACK, font) {
-		centerBetween(400.0, 400.0, fieldSize, fieldSize)
-		y -= 60
+	var bgRestartContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
+	val bgRestartText = roundRect(cellSize * 6.5, cellSize * 4.0, 25.0, fill = Colors["#aaa6a4"]) {
+		centerXOn(bgRestartContainer)
+		y -= -110
+	}
+	// bgYesText
+	roundRect(cellSize * 2.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
+		centerXOn(bgRestartContainer)
+		y -= -225
+		x += -63
+	}
+	// bgNoText
+	roundRect(cellSize * 2.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
+		centerXOn(bgRestartContainer)
+		y -= -225
+		x += 63
+	}
+	text("Restart?", 60.0, Colors.BLACK, font, ) {
+		centerXOn(bgRestartText)
+		y -= -140
 	}
 	uiText("Yes", 120.0, 35.0) {
-		centerBetween(400.0, 400.0, fieldSize, fieldSize)
-		y += 20
-		textSize = 40.0
+		centerBetween(380.0, 505.0, fieldSize, fieldSize)
+		textSize = 30.0
 		textColor = RGBA(0, 0, 0)
 		onOver { textColor = RGBA(90, 90, 90) }
 		onOut { textColor = RGBA(0, 0, 0) }
@@ -279,9 +333,8 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 		}
 	}
 	uiText("No", 120.0, 35.0) {
-		centerBetween(550.0, 400.0, fieldSize, fieldSize)
-		y += 20
-		textSize = 40.0
+		centerBetween(650.0, 505.0, fieldSize, fieldSize)
+		textSize = 30.0
 		textColor = RGBA(0, 0, 0)
 		onOver { textColor = RGBA(90, 90, 90) }
 		onOut { textColor = RGBA(0, 0, 0) }
@@ -293,7 +346,6 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 			this@container.removeFromParent()
 		}
 	}
-	//	TODO: Somehow add background opacity that way he text is more visible
 }
 fun Container.restart() {
 	Napier.w("Running Restart Function...")
@@ -305,8 +357,3 @@ fun Container.restart() {
 	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
 }
-
-
-
-
-
