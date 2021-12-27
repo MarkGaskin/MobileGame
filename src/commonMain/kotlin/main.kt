@@ -191,15 +191,15 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 	val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
 	val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
-	val emptyMagnetImg = resourcesVfs["emptyBomb.png"].readBitmap()
-	val loadedMagnetImg = resourcesVfs["loadedBomb.png"].readBitmap()
+	val emptyMagnetImg = resourcesVfs["emptyMagnet.png"].readBitmap()
+	val loadedMagnetImg = resourcesVfs["loadedMagnet.png"].readBitmap()
 
 	bombContainer = container {
-		val bombBackground = circle(40.0, Colors["#fae6b4"])
+		val bombBackground = circle(40.0, Colors["#e6e6e6"])
 		alignTopToBottomOf(backgroundRect, 18)
 		alignLeftToLeftOf(backgroundRect, fieldWidth/5)
 		image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg ){
-			size(40 * .8, 40 * .8)
+			size(65, 60)
 			centerOn(bombBackground)
 		}
 		onClick {
@@ -211,17 +211,17 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 		bombsLoadedCount.observe {
 			this.removeChildrenIf{ index, _ -> index == 1}
 			image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg ){
-				size(40 * .8, 40 * .8)
+				size(65, 60)
 				centerOn(bombBackground)
 			}
 		}
 	}
 	magnetContainer = container {
-		val bombBackground = circle(40.0, Colors["#fae6b4"])
+		val bombBackground = circle(40.0, Colors["#e6e6e6"])
 		alignTopToBottomOf(backgroundRect, 18)
 		alignRightToRightOf(backgroundRect, fieldWidth/5)
 		image(if (magnetsLoadedCount.value > 0) loadedMagnetImg else emptyMagnetImg ){
-			size(40 * .8, 40 * .8)
+			size(65, 60)
 			centerOn(bombBackground)
 		}
 		onClick {
@@ -234,7 +234,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 		magnetsLoadedCount.observe {
 			this.removeChildrenIf{ index, _ -> index == 1}
 			image(if (magnetsLoadedCount.value > 0) loadedMagnetImg else emptyMagnetImg ){
-				size(40 * .8, 40 * .8)
+				size(65,60)
 				centerOn(bombBackground)
 			}
 		}

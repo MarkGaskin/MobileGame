@@ -138,8 +138,8 @@ fun Stage.animateSelection(image: View, toggle: Boolean) = launchImmediately {
         val y = image.y
         if (toggle) {
             tween(
-                image::x[x - 4],
-                image::y[y - 4],
+                image::x[x - 8],
+                image::y[y - 8],
                 image::scale[bombScaleSelected],
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
@@ -147,8 +147,8 @@ fun Stage.animateSelection(image: View, toggle: Boolean) = launchImmediately {
         }
         else {
             tween(
-                image::x[x + 4],
-                image::y[y + 4],
+                image::x[x + 8],
+                image::y[y + 8],
                 image::scale[bombScaleNormal],
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
