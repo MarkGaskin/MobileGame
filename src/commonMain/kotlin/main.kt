@@ -55,17 +55,25 @@ fun stopAnimating() { isAnimating = false }
 
 var showingRestart: Boolean = false
 
-var bomb1Loaded = ObservableProperty(true)
-var bomb1Selected = false
-var bomb2Loaded = ObservableProperty(false)
-var bomb2Selected = false
-var bomb1container: Container = Container()
-var bomb2container: Container = Container()
+
+const val startingBombCount = 1
+const val maxBombCount = 3
+var bombsLoadedCount = ObservableProperty(startingBombCount)
+var bombSelected = false
+var bombContainer: Container = Container()
+
+const val startingMagnetCount = 1
+const val maxMagnetCount = 3
+var magnetsLoadedCount = ObservableProperty(startingMagnetCount)
+var magnetSelection = MagnetSelection()
+var magnetContainer: Container = Container()
 
 var highestTierReached = 3
 
 var bombScaleNormal = 0.0
 var bombScaleSelected = 0.0
+var magnetScaleNormal = 0.0
+var magnetScaleSelected = 0.0
 
 
 
@@ -183,46 +191,49 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 	val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
 	val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
+	val emptyMagnetImg = resourcesVfs["emptyBomb.png"].readBitmap()
+	val loadedMagnetImg = resourcesVfs["loadedBomb.png"].readBitmap()
 
-	bomb1container = container {
+	bombContainer = container {
 		val bombBackground = circle(40.0, Colors["#fae6b4"])
 		alignTopToBottomOf(backgroundRect, 18)
 		alignLeftToLeftOf(backgroundRect, fieldWidth/5)
-		image(if (bomb1Loaded.value) loadedBombImg else emptyBombImg ){
+		image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg ){
 			size(40 * .8, 40 * .8)
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bomb1Loaded.value && !showingRestart) {
-				bomb1Selected = !bomb1Selected
-				animateBombSelection(this, bomb1Selected)
+			if(bombsLoadedCount.value > 0 && !showingRestart) {
+				bombSelected = !bombSelected
+				animateSelection(this, bombSelected)
 			}
 		}
-		bomb1Loaded.observe {
+		bombsLoadedCount.observe {
 			this.removeChildrenIf{ index, _ -> index == 1}
-			image(if (bomb1Loaded.value) loadedBombImg else emptyBombImg ){
+			image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg ){
 				size(40 * .8, 40 * .8)
 				centerOn(bombBackground)
 			}
 		}
 	}
-	bomb2container = container {
+	magnetContainer = container {
 		val bombBackground = circle(40.0, Colors["#fae6b4"])
 		alignTopToBottomOf(backgroundRect, 18)
 		alignRightToRightOf(backgroundRect, fieldWidth/5)
-		image(if (bomb2Loaded.value) loadedBombImg else emptyBombImg ){
+		image(if (magnetsLoadedCount.value > 0) loadedMagnetImg else emptyMagnetImg ){
 			size(40 * .8, 40 * .8)
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bomb2Loaded.value && !showingRestart) {
-				bomb2Selected = !bomb2Selected
-				animateBombSelection(this, bomb2Selected)
+			if(magnetsLoadedCount.value > 0 && !showingRestart) {
+				magnetSelection.toggleSelect()
+				animateSelection(this, magnetSelection.selected)
+				if (!magnetSelection.selected) this.parent?.removeMagnetSelection()
 			}
 		}
-		bomb2Loaded.observe {
+		magnetsLoadedCount.observe {
 			this.removeChildrenIf{ index, _ -> index == 1}
-			image(if (bomb2Loaded.value) loadedBombImg else emptyBombImg ){
+			image(if (magnetsLoadedCount.value > 0) loadedMagnetImg else emptyMagnetImg ){
 				size(40 * .8, 40 * .8)
 				centerOn(bombBackground)
 			}
@@ -230,8 +241,10 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 	}
 
 
-	bombScaleNormal = bomb1container.scale
+	bombScaleNormal = bombContainer.scale
 	bombScaleSelected = bombScaleNormal * 1.2
+	magnetScaleNormal = magnetContainer.scale
+	magnetScaleSelected = magnetScaleNormal * 1.2
 
 	Napier.d("UI Initialized")
 
@@ -352,8 +365,8 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 fun Container.restart() {
 	Napier.d("Running Restart Function...")
 	score.update(0)
-	bomb1Loaded.update(true)
-	bomb2Loaded.update(false)
+	bombsLoadedCount.update(startingBombCount)
+	magnetsLoadedCount.update(startingMagnetCount)
 	blocksMap.values.forEach { it.removeFromParent() }
 	blocksMap.clear()
 	blocksMap = initializeRandomBlocksMap ()

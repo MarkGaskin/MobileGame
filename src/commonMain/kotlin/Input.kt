@@ -49,14 +49,16 @@ fun getPositionFromPoint (point: Point): Position? {
     }
 }
 
-fun Container.handleDown(point: Point){
+fun Stage.handleDown(point: Point){
     when (true) {
         isAnimating -> return
         showingRestart -> return
-        bomb1Selected,
-        bomb2Selected -> {
+        bombSelected -> {
             isPressed = true
             drawBombHover(getPositionFromPoint(point)) }
+        magnetSelection.selected -> {
+            isPressed = true
+            drawMagnetSelection(getPositionFromPoint(point)) }
         else -> {
             isPressed = true
             return pressDown(getPositionFromPoint(point)) }
@@ -66,10 +68,10 @@ fun Container.handleDown(point: Point){
 fun Container.handleHover(point: Point){
     if (isPressed) {
         when (true) {
-            isAnimating -> return
-            showingRestart -> return
-            bomb1Selected,
-            bomb2Selected ->{
+            isAnimating,
+            showingRestart,
+            magnetSelection.selected -> return
+            bombSelected ->{
                 removeBombHover()
                 drawBombHover(getPositionFromPoint(point))
             }
@@ -81,10 +83,10 @@ fun Container.handleHover(point: Point){
 fun Stage.handleUp(point: Point){
     isPressed = false
     when (true) {
-        isAnimating -> return
+        isAnimating,
+        magnetSelection.selected,
         showingRestart -> return
-        bomb1Selected,
-        bomb2Selected ->{
+        bombSelected ->{
             val maybePosition = getPositionFromPoint(point)
             if (maybePosition == null)
             {
@@ -93,19 +95,9 @@ fun Stage.handleUp(point: Point){
             else
             {
                 animateBomb()
-                when (true) {
-                    bomb1Selected -> {
-                        bomb1Loaded.update(false)
-                        bomb1Selected = false
-                        animateBombSelection(bomb1container, bomb1Selected)
-                    }
-                    bomb2Selected -> {
-                        bomb2Loaded.update(false)
-                        bomb2Selected = false
-                        animateBombSelection(bomb2container, bomb2Selected)
-                    }
-                    else -> Napier.e("Animated bomb with no bomb selected")
-                }
+                removeBomb()
+                bombSelected = false
+                animateSelection(bombContainer, false)
             }
 
         }

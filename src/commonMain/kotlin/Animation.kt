@@ -86,7 +86,7 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
         }
         block {
             stopAnimating()
-            if (!hasAvailableMoves() && !bomb1Loaded.value && !bomb2Loaded.value) {
+            if (!hasAvailableMoves() && bombsLoadedCount.value == 0 && magnetsLoadedCount.value == 0) {
                 Napier.d("Game Over!")
                 showGameOver { restart() }
             }
@@ -132,7 +132,7 @@ fun Animator.animateConsumption(block: Block) {
     )
 }
 
-fun Stage.animateBombSelection(image: View, toggle: Boolean) = launchImmediately {
+fun Stage.animateSelection(image: View, toggle: Boolean) = launchImmediately {
     animateSequence {
         val x = image.x
         val y = image.y
@@ -153,6 +153,35 @@ fun Stage.animateBombSelection(image: View, toggle: Boolean) = launchImmediately
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
             )
+        }
+    }
+}
+
+fun Stage.generateNewBlocks () = launchImmediately {
+    val newPositionBlocks = generateBlocksForEmptyPositions()
+    Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
+    blocksMap.putAll(newPositionBlocks)
+
+    animateSequence {
+        parallel {
+            newPositionBlocks
+                .forEach { (position, block) ->
+
+                    val x = getXFromPosition(position)
+                    val y = getYFromPosition(position)
+                    val scale = block.scale
+
+                    val newBlock =
+                        addBlock(block).position(x + cellSize / 2, y + cellSize / 2).scale(0)
+
+                    tween(
+                        newBlock::x[x],
+                        newBlock::y[y],
+                        newBlock::scale[scale],
+                        time = 0.3.seconds,
+                        easing = Easing.EASE_SINE
+                    )
+                }
         }
     }
 }
@@ -180,33 +209,39 @@ fun Stage.animateBomb() = launchImmediately {
             hoveredBombPositions.forEach { position -> deleteBlock(blocksMap[position]!!) }
             hoveredBombPositions.clear()
         }
-        sequenceLazy {
-            val newPositionBlocks = generateBlocksForEmptyPositions()
-            Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
-            blocksMap.putAll(newPositionBlocks)
+    }
+    generateNewBlocks()
+    stopAnimating()
+}
 
-
-            parallel {
-                newPositionBlocks
-                    .forEach { (position, block) ->
-
-                        val x = getXFromPosition(position)
-                        val y = getYFromPosition(position)
-                        val scale = block.scale
-
-                        val newBlock =
-                            addBlock(block).position(x + cellSize / 2, y + cellSize / 2).scale(0)
-
-                        tween(
-                            newBlock::x[x],
-                            newBlock::y[y],
-                            newBlock::scale[scale],
-                            time = 0.3.seconds,
-                            easing = Easing.EASE_SINE
-                        )
-                    }
+fun Stage.animateMagnet(selection: MagnetSelection) = launchImmediately {
+    when (true) {
+        (selection.firstPosition == null) -> Napier.e("No first position when animating magnets")
+        (selection.secondPosition == null) -> Napier.e("No first position when animating magnets")
+        else -> {
+            startAnimating()
+            val firstPosition = selection.firstPosition!!
+            val secondPosition = selection.secondPosition!!
+            Napier.d("Magnetting block from ${firstPosition.log()} to ${secondPosition.log()}")
+            animateSequence {
+                parallel {
+                    blocksMap[firstPosition]!!.moveTo(
+                        getXFromPosition(secondPosition),
+                        getYFromPosition(secondPosition),
+                        0.15.seconds,
+                        Easing.LINEAR
+                    )
+                }
+                sequenceLazy {
+                    deleteBlock(blocksMap[secondPosition])
+                    updateBlock(blocksMap[firstPosition]!!.copyToNextId().unselect(), secondPosition)
+                    deleteBlock(blocksMap[firstPosition])
+                }
+                sequenceLazy {
+                    generateNewBlocks()
+                }
             }
+            stopAnimating()
         }
     }
-    stopAnimating()
 }

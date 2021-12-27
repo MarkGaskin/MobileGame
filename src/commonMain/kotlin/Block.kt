@@ -12,13 +12,14 @@ fun Container.removeBlock(block: Block) {
 }
 
 enum class BlockSelection () {
-    UNSELECTED, NORMAL, BOMB, PATTERN;
+    UNSELECTED, NORMAL, BOMB, MAGNET, PATTERN;
 
     fun color (default: RGBA) =
         when (this){
             UNSELECTED -> default
             NORMAL -> Colors["#6a00b0"]
             BOMB -> Colors["#990a00"]
+            MAGNET -> Colors["#00bda7"]
             PATTERN -> Colors["#db8504"]
         }
 }
@@ -56,12 +57,23 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
         return this
     }
 
+    fun selectMagnet (): Block {
+        this.selection = BlockSelection.MAGNET
+        return this
+    }
+
     fun selectPattern (): Block {
         this.selection = BlockSelection.PATTERN
         return this
     }
 
     fun copy (): Block {
+        return Block(id, number, selection)
+    }
+
+    fun copyToNextId (): Block {
+        val id = nextBlockId
+        nextBlockId++
         return Block(id, number, selection)
     }
 

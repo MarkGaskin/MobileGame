@@ -1,5 +1,7 @@
 import com.soywiz.korge.view.*
 import io.github.aakira.napier.Napier
+import kotlin.math.max
+import kotlin.math.min
 
 
 fun Container.deleteBlock(block: Block?) {
@@ -12,7 +14,7 @@ fun Container.deleteBlock(block: Block?) {
 
 
 fun Container.drawBlock (block: Block, position: Position) {
-    Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}, IsSelected ${block.selection}")
+    Napier.v("drawBlock at ${position.log()} with Number ${block.number.value}, IsSelected ${block.selection}")
     blocksMap[position] = addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
     addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
 }
@@ -47,6 +49,7 @@ fun Stage.unsuccessfulShape() {
 }
 
 fun Stage.successfulShape() {
+    if (hoveredPositions.size >= 9) tryAddMagnets(1)
     val pattern = determinePattern(hoveredPositions.toMutableList())
     val scoredPoints = determineScore(hoveredPositions.toMutableList())
     Napier.d("Hovered position size ${hoveredPositions.size}")
@@ -59,18 +62,14 @@ fun Stage.successfulShape() {
 
 fun tryAddBombs(numberOfBombs: Int){
     Napier.d("Trying to add $numberOfBombs bombs")
-    when (numberOfBombs){
-        1 -> when (true){
-            !bomb1Loaded.value -> bomb1Loaded.update(true)
-            !bomb2Loaded.value -> bomb2Loaded.update(true)
-            else -> Napier.d("Tried to add bomb when already full")
-        }
-        in 2..18 ->{
-            if (bomb1Loaded.value) bomb1Loaded.update(true)
-            if (bomb2Loaded.value) bomb2Loaded.update(true)
-        }
-        else -> Napier.e("Tried to add an unexpected number of bombs: $numberOfBombs")
-    }
+    val newBombCount = min(bombsLoadedCount.value + numberOfBombs, maxBombCount)
+    bombsLoadedCount.update(newBombCount)
+}
+
+fun removeBomb(){
+    Napier.d("Removing a bomb")
+    val newBombCount = max(bombsLoadedCount.value - 1, 0)
+    bombsLoadedCount.update(newBombCount)
 }
 
 fun Container.drawBombHover (maybePosition: Position?) {
@@ -88,6 +87,7 @@ fun Container.drawBombHover (maybePosition: Position?) {
         Napier.e("drawBombHover tried to draw a main block that is null")
     }
 }
+
 fun Container.removeBombHover () {
     hoveredBombPositions.forEach { pos ->
         if (blocksMap[pos] != null) {
@@ -97,4 +97,62 @@ fun Container.removeBombHover () {
         }
     }
     hoveredBombPositions.clear()
+}
+
+fun tryAddMagnets(numberOfMagnets: Int){
+    Napier.d("Trying to add $numberOfMagnets magnets")
+    val newMagnetCount = min(magnetsLoadedCount.value + numberOfMagnets, maxMagnetCount)
+    magnetsLoadedCount.update(newMagnetCount)
+}
+
+fun removeMagnet(){
+    Napier.d("Removing a magnet")
+    val newMagnetCount = max(magnetsLoadedCount.value - 1, 0)
+    magnetsLoadedCount.update(newMagnetCount)
+}
+
+fun Stage.drawMagnetSelection (maybePosition: Position?) {
+    when (true) {
+        (maybePosition == null) -> Napier.e("drawMagnetSelection tried to draw a main block that is null")
+        (!magnetSelection.selected) -> Napier.e("drawMagnetSelection tried to draw  when magnet is unselected")
+        (magnetSelection.firstPosition == null) -> {
+            magnetSelection.selectFirst(maybePosition)
+            updateBlock(blocksMap[maybePosition]!!.selectMagnet(), maybePosition)
+        }
+        (magnetSelection.firstPosition == maybePosition) -> {
+            magnetSelection.unselectFirst()
+            updateBlock(blocksMap[maybePosition]!!.unselect(), maybePosition)
+        }
+        (magnetSelection.secondPosition == null) -> {
+            magnetSelection.selectSecond(maybePosition)
+            animateMagnet(magnetSelection.copy())
+            removeMagnet()
+            magnetSelection.unselect()
+            animateSelection(magnetContainer, false)
+        }
+        else ->
+        {
+
+        }
+    }
+}
+
+fun Container.removeMagnetSelection () {
+    if (magnetSelection.firstPosition != null && blocksMap[magnetSelection.firstPosition] != null) {
+        updateBlock(
+            blocksMap[magnetSelection.firstPosition]!!.unselect(),
+            magnetSelection.firstPosition!!
+        )
+    }else {
+        Napier.d("No first magnet position to remove")
+    }
+    if (magnetSelection.secondPosition != null && blocksMap[magnetSelection.secondPosition] != null) {
+        updateBlock(
+            blocksMap[magnetSelection.secondPosition]!!.unselect(),
+            magnetSelection.secondPosition!!
+        )
+    }else {
+        Napier.d("No second magnet position to remove")
+    }
+    magnetSelection.unselect()
 }
