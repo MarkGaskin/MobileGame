@@ -172,10 +172,10 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 		onClick {
 			if(!showingRestart) {
 				this@Korge.showRestart { this@Korge.restart() }
-				Napier.w("Restart Button Clicked")
+				Napier.d("Restart Button Clicked")
 			}
 			else{
-				Napier.w("Restart Button Clicked when already showing restart")
+				Napier.d("Restart Button Clicked when already showing restart")
 			}
 		}
 	}
@@ -245,20 +245,21 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 }
 
-fun Container.showGameOver(onGameover: () -> Unit) = container {
-	Napier.w("Showing GameOver Container...")
+fun Container.showGameOver(onGameOver: () -> Unit) = container {
+	showingRestart = true
+	Napier.d("Showing GameOver Container...")
 	fun restart() {
 		this@container.removeFromParent()
-		onGameover()
+		onGameOver()
 	}
 	position(leftIndent, topIndent)
 
-	var bgGameOverContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
+	val bgGameOverContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
 	val bgGameOverText = roundRect(cellSize * 6.5, cellSize * 4.0, 25.0, fill = Colors["#aaa6a4"]) {
 		centerXOn(bgGameOverContainer)
 		y -= -110
 	}
-	val bgTryagainText = roundRect(cellSize * 4.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
+	val bgTryAgainText = roundRect(cellSize * 4.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
 		centerXOn(bgGameOverText)
 		y -= -230
 	}
@@ -269,7 +270,7 @@ fun Container.showGameOver(onGameover: () -> Unit) = container {
 	}
 
 	uiText("Try again?", 120.0, 35.0) {
-		centerXOn(bgTryagainText)
+		centerXOn(bgTryAgainText)
 		y -= -237
 		x += -5
 		textSize = 30.0
@@ -279,8 +280,9 @@ fun Container.showGameOver(onGameover: () -> Unit) = container {
 		onDown { textColor = RGBA(120, 120, 120) }
 		onUp { textColor = RGBA(120, 120, 120) }
 		onClick {
-			Napier.w("Try again Button Clicked")
+			Napier.d("Try again Button Clicked")
 			restart()
+			showingRestart = false
 			this@container.removeFromParent()
 		}
 	}
@@ -289,14 +291,14 @@ fun Container.showGameOver(onGameover: () -> Unit) = container {
 
 fun Container.showRestart(onRestart: () -> Unit) = container {
 	showingRestart = true
-	Napier.w("Showing Restart Container...")
+	Napier.d("Showing Restart Container...")
 	fun restart() {
 		this@container.removeFromParent()
 		onRestart()
 	}
 
 	position(leftIndent, topIndent)
-	var bgRestartContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
+	val bgRestartContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
 	val bgRestartText = roundRect(cellSize * 6.5, cellSize * 4.0, 25.0, fill = Colors["#aaa6a4"]) {
 		centerXOn(bgRestartContainer)
 		y -= -110
@@ -326,7 +328,7 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 		onDown { textColor = RGBA(120, 120, 120) }
 		onUp { textColor = RGBA(120, 120, 120) }
 		onClick {
-			Napier.w("Restart Button - YES Clicked")
+			Napier.d("Restart Button - YES Clicked")
 			restart()
 			showingRestart = false
 			this@container.removeFromParent()
@@ -341,14 +343,14 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 		onDown { textColor = RGBA(120, 120, 120) }
 		onUp { textColor = RGBA(120, 120, 120) }
 		onClick {
-			Napier.w("Restart Button - NO Clicked")
+			Napier.d("Restart Button - NO Clicked")
 			showingRestart = false
 			this@container.removeFromParent()
 		}
 	}
 }
 fun Container.restart() {
-	Napier.w("Running Restart Function...")
+	Napier.d("Running Restart Function...")
 	score.update(0)
 	bomb1Loaded.update(true)
 	bomb2Loaded.update(false)
