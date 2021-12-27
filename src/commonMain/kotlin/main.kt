@@ -1,4 +1,6 @@
 import com.soywiz.korge.*
+import com.soywiz.korge.admob.Admob
+import com.soywiz.korge.admob.AdmobCreate
 import com.soywiz.korge.view.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.service.storage.storage
@@ -14,8 +16,8 @@ import com.soywiz.korma.geom.vector.*
 import com.soywiz.korim.font.*
 import com.soywiz.korim.text.TextAlignment
 import com.soywiz.korio.async.ObservableProperty
+import com.soywiz.korio.lang.Thread_sleep
 import kotlin.properties.Delegates
-
 import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import kotlin.random.Random
@@ -92,6 +94,8 @@ const val largeSelectionSize = 18
 
 suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
 	Napier.base(DebugAntilog())
+
+	var admob = AdmobCreate(this.views,testing = true)
 
 	val backgroundImg = resourcesVfs["background.png"].readBitmap()
 
@@ -448,8 +452,17 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
 
+
 	blockScaleNormal = blocksMap[Position(0,0)]!!.scale
 	blockScaleSelected = blockScaleNormal * 1.2
+
+	var bannerConfig = Admob.Config(id="ca-app-pub-3940256099942544/6300978111")
+
+//	admob.bannerPrepare(bannerConfig)
+//	admob.bannerShow()
+
+	//admob.interstitialWaitAndShow(Admob.Config(id="ca-app-pub-3940256099942544/1033173712"))
+
 
 
 	touch {
