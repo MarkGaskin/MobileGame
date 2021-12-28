@@ -216,6 +216,17 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 			}
 		}
 	}
+
+	text(bombsLoadedCount.value.toString(), cellSize * 1.0, Colors.BLACK, font) {
+		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
+		alignment = TextAlignment.RIGHT
+		alignTopToBottomOf(bombContainer, -20)
+		alignRightToRightOf(bombContainer)
+		bombsLoadedCount.observe {
+			text = it.toString()
+		}
+	}
+
 	magnetContainer = container {
 		val bombBackground = circle(40.0, Colors["#e6e6e6"])
 		alignTopToBottomOf(backgroundRect, 18)
@@ -237,6 +248,16 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 				size(65,60)
 				centerOn(bombBackground)
 			}
+		}
+	}
+
+	text(magnetsLoadedCount.value.toString(), cellSize * 1.0, Colors.BLACK, font) {
+		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
+		alignment = TextAlignment.RIGHT
+		alignTopToBottomOf(magnetContainer, -20)
+		alignRightToRightOf(magnetContainer)
+		magnetsLoadedCount.observe {
+			text = it.toString()
 		}
 	}
 
