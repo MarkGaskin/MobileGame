@@ -57,13 +57,14 @@ var showingRestart: Boolean = false
 
 
 const val startingBombCount = 1
-const val maxBombCount = 3
+const val maxBombCount = 5
 var bombsLoadedCount = ObservableProperty(startingBombCount)
 var bombSelected = false
 var bombContainer: Container = Container()
 
 const val startingRocketCount = 1
-const val maxRocketCount = 3
+const val maxRocketCount = 5
+const val rocketPowerUpLength = 8
 var rocketsLoadedCount = ObservableProperty(startingRocketCount)
 var rocketSelection = RocketSelection()
 var rocketContainer: Container = Container()
@@ -227,14 +228,91 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
-	text(bombsLoadedCount.value.toString(), cellSize * 1.0, Colors.BLACK, font) {
-		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
-		alignment = TextAlignment.RIGHT
-		alignTopToBottomOf(bombContainer, -20)
+	container {
+		alignTopToBottomOf(bombContainer, 2)
 		alignRightToRightOf(bombContainer)
-		bombsLoadedCount.observe {
-			text = it.toString()
+		alignLeftToLeftOf(bombContainer)
+
+		val emptyFill = Colors["#e6e6e6A0"]
+		val loadedFill = Colors["#e04b5a"]
+
+		var cart1Fill = emptyFill
+		var cart2Fill = emptyFill
+		var cart3Fill = emptyFill
+		var cart4Fill = emptyFill
+		var cart5Fill = emptyFill
+
+		fun fillByBombCount () {
+			cart1Fill = if (bombsLoadedCount.value > 0) loadedFill else emptyFill
+			cart2Fill = if (bombsLoadedCount.value > 1) loadedFill else emptyFill
+			cart3Fill = if (bombsLoadedCount.value > 2) loadedFill else emptyFill
+			cart4Fill = if (bombsLoadedCount.value > 3) loadedFill else emptyFill
+			cart5Fill = if (bombsLoadedCount.value > 4) loadedFill else emptyFill
 		}
+
+		val strokeThickness = 1.5
+		fun drawCartridges () {
+			val cart1 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart1Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToLeftOf(this)
+			}
+			val cart2 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart2Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart1)
+			}
+			val cart3 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart3Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart2)
+			}
+			val cart4 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart4Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart3)
+			}
+			val cart5 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart5Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart4)
+			}
+		}
+
+		fillByBombCount ()
+		drawCartridges()
+
+		bombsLoadedCount.observe {
+			this.removeChildren()
+			fillByBombCount ()
+			drawCartridges()
+		}
+
 	}
 
 	rocketContainer = container {
@@ -263,14 +341,91 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
-	text(rocketsLoadedCount.value.toString(), cellSize * 1.0, Colors.BLACK, font) {
-		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
-		alignment = TextAlignment.RIGHT
-		alignTopToBottomOf(rocketContainer, -20)
+	container {
+		alignTopToBottomOf(rocketContainer, 2)
 		alignRightToRightOf(rocketContainer)
-		rocketsLoadedCount.observe {
-			text = it.toString()
+		alignLeftToLeftOf(rocketContainer)
+
+		val emptyFill = Colors["#e6e6e6A0"]
+		val loadedFill = Colors["#ca9dd7"]
+
+		var cart1Fill = emptyFill
+		var cart2Fill = emptyFill
+		var cart3Fill = emptyFill
+		var cart4Fill = emptyFill
+		var cart5Fill = emptyFill
+
+		fun fillByRocketCount () {
+			cart1Fill = if (rocketsLoadedCount.value > 0) loadedFill else emptyFill
+			cart2Fill = if (rocketsLoadedCount.value > 1) loadedFill else emptyFill
+			cart3Fill = if (rocketsLoadedCount.value > 2) loadedFill else emptyFill
+			cart4Fill = if (rocketsLoadedCount.value > 3) loadedFill else emptyFill
+			cart5Fill = if (rocketsLoadedCount.value > 4) loadedFill else emptyFill
 		}
+
+		val strokeThickness = 1.5
+		fun drawCartridges () {
+			val cart1 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart1Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToLeftOf(this)
+			}
+			val cart2 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart2Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart1)
+			}
+			val cart3 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart3Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart2)
+			}
+			val cart4 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart4Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart3)
+			}
+			val cart5 = roundRect(
+				cellSize * 2.0 / 5.0,
+				cellSize * 0.5,
+				5.0,
+				fill = cart5Fill,
+				stroke = Colors.WHITE,
+				strokeThickness = strokeThickness
+			) {
+				alignLeftToRightOf(cart4)
+			}
+		}
+
+		fillByRocketCount ()
+		drawCartridges()
+
+		rocketsLoadedCount.observe {
+			this.removeChildren()
+			fillByRocketCount ()
+			drawCartridges()
+		}
+
 	}
 
 

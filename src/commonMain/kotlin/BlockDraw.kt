@@ -49,7 +49,7 @@ fun Stage.unsuccessfulShape() {
 }
 
 fun Stage.successfulShape() {
-    if (hoveredPositions.size >= 9) tryAddRockets(1)
+    if (hoveredPositions.size >= rocketPowerUpLength) tryAddRockets(1)
     val pattern = determinePattern(hoveredPositions.toMutableList())
     val scoredPoints = determineScore(hoveredPositions.toMutableList())
     Napier.d("Hovered position size ${hoveredPositions.size}")

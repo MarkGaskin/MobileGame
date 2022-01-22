@@ -139,7 +139,7 @@ fun Stage.animateSelection(image: View, toggle: Boolean) = launchImmediately {
         if (toggle) {
             tween(
                 image::x[x - 8],
-                image::y[y - 8],
+                image::y[y - 12],
                 image::scale[bombScaleSelected],
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
@@ -148,7 +148,7 @@ fun Stage.animateSelection(image: View, toggle: Boolean) = launchImmediately {
         else {
             tween(
                 image::x[x + 8],
-                image::y[y + 8],
+                image::y[y + 12],
                 image::scale[bombScaleNormal],
                 time = 0.1.seconds,
                 easing = Easing.LINEAR
