@@ -183,8 +183,8 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
         }
         Pattern.I4 -> {
             val last = positionList.removeLast()
-            val first = positionList.removeFirst()
-            mergeMap[first] = Pair(nextNumber, positionList.subList(0,1).toMutableList())
+            val secondLast = positionList.removeLast()
+            mergeMap[secondLast] = Pair(nextNumber, positionList.subList(0,1).toMutableList())
             mergeMap[last] = Pair(nextNumber, positionList.subList(1,2).toMutableList())
         }
         Pattern.I5 -> {
@@ -193,14 +193,14 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
         }
         Pattern.I6 -> {
             val last = positionList.removeLast()
-            val first = positionList.removeFirst()
-            mergeMap[first] = Pair(nextNumber, positionList.subList(0,2).toMutableList())
+            val secondLast = positionList.removeLast()
+            mergeMap[secondLast] = Pair(nextNumber, positionList.subList(0,2).toMutableList())
             mergeMap[last] = Pair(nextNumber, positionList.subList(2,4).toMutableList())
         }
         Pattern.I7 -> {
             val last = positionList.removeLast()
-            val first = positionList.removeFirst()
-            mergeMap[first] = Pair(nextNumber, positionList.subList(0,2).toMutableList())
+            val secondLast = positionList.removeLast()
+            mergeMap[secondLast] = Pair(nextNumber, positionList.subList(0,2).toMutableList())
             mergeMap[last] = Pair(nextNumber.next(), positionList.subList(2,5).toMutableList())
         }
         Pattern.D6 -> {
