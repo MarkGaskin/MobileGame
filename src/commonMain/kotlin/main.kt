@@ -115,7 +115,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 	Napier.d("Left indent = $leftIndent")
 	topIndent = 155
 
-	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e880"]) {
+	val gameField = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e880"]) {
 		position(leftIndent, topIndent)
 
 		touch {
@@ -135,18 +135,17 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
-
-
 	val restartImg = resourcesVfs["restart.png"].readBitmap()
 
 	val btnSize = cellSize * 1.0
 	val restartBlock = container {
-		val background = roundRect(btnSize, btnSize, 5.0, fill = Colors["#f7c469"])
+		val backgroundBlock = roundRect(btnSize, btnSize, 5.0, fill = Colors["#f7c469"])
 		image(restartImg) {
 			size(btnSize * 0.8, btnSize * 0.8)
-			centerOn(background)
+			centerOn(backgroundBlock)
 		}
-		position(leftIndent + cellIndentSize + 24, 36)
+		alignLeftToLeftOf(gameField, cellSize*0.5)
+		alignBottomToTopOf(gameField, cellSize * 0.75)
 		onClick {
 			if(!showingRestart) {
 				this@Korge.showRestart { this@Korge.restart() }
@@ -158,27 +157,9 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
-	val bgBest = roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#9182c4"]) {
-		alignRightToRightOf(backgroundRect)
-		alignTopToTopOf(restartBlock, -cellSize*0.25)
-	}
-	text("BEST", cellSize * 0.5, Colors["#ebd9dd"], font) {
-		centerXOn(bgBest)
-		alignTopToTopOf(bgBest, 3.0)
-	}
-	text(best.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
-		setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
-		alignment = TextAlignment.MIDDLE_CENTER
-		alignTopToTopOf(bgBest, 5.0 + (cellSize*0.5) + 5.0)
-		centerXOn(bgBest)
-		best.observe {
-			text = it.toString()
-		}
-	}
-
 	val bgScore = roundRect(cellSize * 2.5, cellSize*1.5, 5.0, fill = Colors["#9182c4"]) {
-		alignRightToLeftOf(bgBest, 24.0)
-		alignTopToTopOf(bgBest)
+		alignLeftToRightOf(restartBlock, cellSize)
+		alignBottomToTopOf(gameField, cellSize * 0.5)
 	}
 	text("SCORE", cellSize * 0.5, Colors["#ebd9dd"], font) {
 		centerXOn(bgScore)
@@ -195,6 +176,24 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
+	val bgBest = roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#9182c4"]) {
+		alignRightToRightOf(gameField, 12.0)
+		alignBottomToTopOf(gameField, cellSize * 0.5)
+	}
+	text("BEST", cellSize * 0.5, Colors["#ebd9dd"], font) {
+		centerXOn(bgBest)
+		alignTopToTopOf(bgBest, 3.0)
+	}
+	text(best.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
+		setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
+		alignment = TextAlignment.MIDDLE_CENTER
+		alignTopToTopOf(bgBest, 5.0 + (cellSize*0.5) + 5.0)
+		centerXOn(bgBest)
+		best.observe {
+			text = it.toString()
+		}
+	}
+
 
 	val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
 	val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
@@ -203,8 +202,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 
 	bombContainer = container {
 		val bombBackground = roundRect(cellSize*2.0, cellSize*1.5, 10.0, fill=Colors["#e6e6e6A0"])
-		alignTopToBottomOf(backgroundRect, 18)
-		alignLeftToLeftOf(backgroundRect, fieldWidth/5)
+		alignTopToBottomOf(gameField, 18)
+		alignLeftToLeftOf(gameField, fieldWidth/5)
 		image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg ){
 			size(65, 60)
 			centerOn(bombBackground)
@@ -315,8 +314,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		val rocketBackground = roundRect(cellSize*2.0, cellSize*1.5, 10.0, fill=Colors["#e6e6e6A0"])
 		val rocketWidth = 43
 		val rocketHeight = 60
-		alignTopToBottomOf(backgroundRect, 18)
-		alignRightToRightOf(backgroundRect, fieldWidth/5)
+		alignTopToBottomOf(gameField, 18)
+		alignRightToRightOf(gameField, fieldWidth/5)
 		image(if (rocketsLoadedCount.value > 0) loadedRocketImg else emptyRocketImg ){
 			size(rocketWidth, rocketHeight)
 			centerOn(rocketBackground)
