@@ -2,6 +2,7 @@ import com.soywiz.korge.*
 import com.soywiz.korge.view.*
 import com.soywiz.korge.input.*
 import com.soywiz.korge.service.storage.storage
+import com.soywiz.korge.ui.textAlignment
 import com.soywiz.korge.ui.textColor
 import com.soywiz.korge.ui.textSize
 import com.soywiz.korge.ui.uiText
@@ -11,6 +12,7 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korim.font.*
+import com.soywiz.korim.text.HorizontalAlign
 import com.soywiz.korim.text.TextAlignment
 import com.soywiz.korio.async.ObservableProperty
 import kotlin.properties.Delegates
@@ -76,6 +78,8 @@ var bombScaleSelected = 0.0
 var rocketScaleNormal = 0.0
 var rocketScaleSelected = 0.0
 
+var gameField = RoundRect(0.0,0.0,0.0)
+
 
 
 
@@ -115,7 +119,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 	Napier.d("Left indent = $leftIndent")
 	topIndent = 155
 
-	val gameField = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e880"]) {
+	gameField = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e880"]) {
 		position(leftIndent, topIndent)
 
 		touch {
@@ -139,7 +143,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 
 	val btnSize = cellSize * 1.0
 	val restartBlock = container {
-		val backgroundBlock = roundRect(btnSize, btnSize, 5.0, fill = Colors["#f7c469"])
+		val backgroundBlock = roundRect(btnSize, btnSize, 5.0, fill = Colors["#639cd9"])
 		image(restartImg) {
 			size(btnSize * 0.8, btnSize * 0.8)
 			centerOn(backgroundBlock)
@@ -443,46 +447,55 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 
 fun Container.showGameOver(onGameOver: () -> Unit) = container {
 	showingRestart = true
-	Napier.d("Showing GameOver Container...")
+	Napier.d("Showing Restart Container...")
 	fun restart() {
 		this@container.removeFromParent()
 		onGameOver()
 	}
-	position(leftIndent, topIndent)
 
-	val bgGameOverContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
-	val bgGameOverText = roundRect(cellSize * 6.5, cellSize * 4.0, 25.0, fill = Colors["#aaa6a4"]) {
-		centerXOn(bgGameOverContainer)
-		y -= -110
+	val restartBackground = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#aaa6a4cc"]) {
+		centerXOn(gameField)
+		centerYOn(gameField)
 	}
-	val bgTryAgainText = roundRect(cellSize * 4.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
-		centerXOn(bgGameOverText)
-		y -= -230
-	}
+	val bgRestartContainer = container {
+		roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#bbd0f2"]) {
+			centerXOn(restartBackground)
+			centerYOn(restartBackground)
+		}
+		uiText("Restart?") {
+			centerXOn(restartBackground)
+			centerYOn(restartBackground)
 
-	text("Game Over...", 60.0, Colors.BLACK, font, ) {
-		centerBetween(425.0, 0.0, fieldSize, fieldSize)
-		y -= -160
-	}
-
-	uiText("Try again?", 120.0, 35.0) {
-		centerXOn(bgTryAgainText)
-		y -= -237
-		x += -5
-		textSize = 30.0
-		textColor = RGBA(0, 0, 0)
-		onOver { textColor = RGBA(90, 90, 90) }
-		onOut { textColor = RGBA(0, 0, 0) }
-		onDown { textColor = RGBA(120, 120, 120) }
-		onUp { textColor = RGBA(120, 120, 120) }
-		onClick {
-			Napier.d("Try again Button Clicked")
-			restart()
+			textAlignment = TextAlignment.MIDDLE_CENTER
+			textSize = 30.0
+			textColor = RGBA(0, 0, 0)
+			onOver { textColor = RGBA(90, 90, 90) }
+			onOut { textColor = RGBA(0, 0, 0) }
+			onDown { textColor = RGBA(120, 120, 120) }
+			onUp { textColor = RGBA(120, 120, 120) }
+		}
+		onUp {
+			Napier.d("Restart Button - YES Clicked")
 			showingRestart = false
+			restart()
+			this@container.removeFromParent()
+		}
+		onClick {
+			Napier.d("Restart Button - YES Clicked")
+			showingRestart = false
+			restart()
 			this@container.removeFromParent()
 		}
 	}
-
+	val gameOverText = container {
+		alignBottomToTopOf(bgRestartContainer, cellSize * 1.0)
+		centerXOn(bgRestartContainer)
+		text("Out of moves") {
+			alignment = TextAlignment.MIDDLE_CENTER
+			textSize = 50.0
+			color = RGBA(0, 0, 0)
+		}
+	}
 }
 
 fun Container.showRestart(onRestart: () -> Unit) = container {
@@ -493,54 +506,42 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 		onRestart()
 	}
 
-	position(leftIndent, topIndent)
-	val bgRestartContainer = roundRect(435.0, 435.0, 5.0, fill = Colors["#aaa6a4cc"])
-	val bgRestartText = roundRect(cellSize * 6.5, cellSize * 4.0, 25.0, fill = Colors["#aaa6a4"]) {
-		centerXOn(bgRestartContainer)
-		y -= -110
-	}
-	// bgYesText
-	roundRect(cellSize * 2.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
-		centerXOn(bgRestartContainer)
-		y -= -225
-		x += -63
-	}
-	// bgNoText
-	roundRect(cellSize * 2.0, cellSize * 1.0, 20.0, fill = Colors["#aaa6a4"], stroke = Colors.BLACK, strokeThickness = 1.5) {
-		centerXOn(bgRestartContainer)
-		y -= -225
-		x += 63
-	}
-	text("Restart?", 60.0, Colors.BLACK, font, ) {
-		centerXOn(bgRestartText)
-		y -= -140
-	}
-	uiText("Yes", 120.0, 35.0) {
-		centerBetween(380.0, 505.0, fieldSize, fieldSize)
-		textSize = 30.0
-		textColor = RGBA(0, 0, 0)
-		onOver { textColor = RGBA(90, 90, 90) }
-		onOut { textColor = RGBA(0, 0, 0) }
-		onDown { textColor = RGBA(120, 120, 120) }
-		onUp { textColor = RGBA(120, 120, 120) }
+	val restartBackground = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#aaa6a4cc"]) {
+		centerXOn(gameField)
+		centerYOn(gameField)
 		onClick {
-			Napier.d("Restart Button - YES Clicked")
-			restart()
+			Napier.d("Restart Button - NO Clicked")
 			showingRestart = false
 			this@container.removeFromParent()
 		}
 	}
-	uiText("No", 120.0, 35.0) {
-		centerBetween(650.0, 505.0, fieldSize, fieldSize)
-		textSize = 30.0
-		textColor = RGBA(0, 0, 0)
-		onOver { textColor = RGBA(90, 90, 90) }
-		onOut { textColor = RGBA(0, 0, 0) }
-		onDown { textColor = RGBA(120, 120, 120) }
-		onUp { textColor = RGBA(120, 120, 120) }
-		onClick {
-			Napier.d("Restart Button - NO Clicked")
+	val bgRestartContainer = container {
+		roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#bbd0f2"]) {
+			centerXOn(restartBackground)
+			centerYOn(restartBackground)
+		}
+		uiText("Restart?") {
+			centerXOn(restartBackground)
+			centerYOn(restartBackground)
+
+			textAlignment = TextAlignment.MIDDLE_CENTER
+			textSize = 30.0
+			textColor = RGBA(0, 0, 0)
+			onOver { textColor = RGBA(90, 90, 90) }
+			onOut { textColor = RGBA(0, 0, 0) }
+			onDown { textColor = RGBA(120, 120, 120) }
+			onUp { textColor = RGBA(120, 120, 120) }
+		}
+		onUp {
+			Napier.d("Restart Button - YES Clicked")
 			showingRestart = false
+			restart()
+			this@container.removeFromParent()
+		}
+		onClick {
+			Napier.d("Restart Button - YES Clicked")
+			showingRestart = false
+			restart()
 			this@container.removeFromParent()
 		}
 	}

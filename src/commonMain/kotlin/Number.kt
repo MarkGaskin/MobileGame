@@ -12,7 +12,7 @@ enum class Number(val value: Int, val color: RGBA, val display: String) {
     THREE(27, Colors["#61c0bf"], "27"),
     FOUR(81, Colors["#ffd581"], "81"),
     FIVE(243, Colors["#bf81ff"], "243"),
-    SIX(729, Colors["#9182c4"], "729"),
+    SIX(729, Colors["#837dff"], "729"),
     SEVEN(2187, Colors["#6927ff"], "2187"),
     EIGHT(6561, Colors["#2aa9d2"], "6561"),
     NINE(19683, Colors["#1874c3"], "19683"),
