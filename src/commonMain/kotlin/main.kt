@@ -62,24 +62,34 @@ var bombsLoadedCount = ObservableProperty(startingBombCount)
 var bombSelected = false
 var bombContainer: Container = Container()
 
-const val startingMagnetCount = 1
-const val maxMagnetCount = 3
-var magnetsLoadedCount = ObservableProperty(startingMagnetCount)
-var magnetSelection = MagnetSelection()
-var magnetContainer: Container = Container()
+const val startingRocketCount = 1
+const val maxRocketCount = 3
+var rocketsLoadedCount = ObservableProperty(startingRocketCount)
+var rocketSelection = RocketSelection()
+var rocketContainer: Container = Container()
 
 var highestTierReached = 3
 
 var bombScaleNormal = 0.0
 var bombScaleSelected = 0.0
-var magnetScaleNormal = 0.0
-var magnetScaleSelected = 0.0
+var rocketScaleNormal = 0.0
+var rocketScaleSelected = 0.0
 
 
 
 
-suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = RGBA(253, 247, 240)) {
+suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
 	Napier.base(DebugAntilog())
+
+	val backgroundImg = resourcesVfs["background.png"].readBitmap()
+
+	val background = container {
+		image(backgroundImg) {
+			size(views.virtualWidth, views.virtualHeight)
+		}
+		alignTopToTopOf(this)
+		alignRightToRightOf(this)
+	}
 
 	val storage = views.storage
 	best.update(storage.getOrNull("best")?.toInt() ?: 0)
@@ -104,7 +114,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 	Napier.d("Left indent = $leftIndent")
 	topIndent = 155
 
-	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e8"]) {
+	val backgroundRect = roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e880"]) {
 		position(leftIndent, topIndent)
 
 		touch {
@@ -115,7 +125,7 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 	graphics {
 		position(leftIndent, topIndent)
-		fill(Colors["#cec0b2"]) {
+		fill(Colors["#cec0b250"]) {
 			for (i in 0 until gridColumns) {
 				for (j in 0 until gridRows) {
 					roundRect(cellIndentSize + (cellIndentSize + cellSize) * i, cellIndentSize + (cellIndentSize + cellSize) * j, cellSize, cellSize, 5)
@@ -191,11 +201,11 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 	val emptyBombImg = resourcesVfs["emptyBomb.png"].readBitmap()
 	val loadedBombImg = resourcesVfs["loadedBomb.png"].readBitmap()
-	val emptyMagnetImg = resourcesVfs["emptyMagnet.png"].readBitmap()
-	val loadedMagnetImg = resourcesVfs["loadedMagnet.png"].readBitmap()
+	val emptyRocketImg = resourcesVfs["emptyRocket.png"].readBitmap()
+	val loadedRocketImg = resourcesVfs["loadedRocket.png"].readBitmap()
 
 	bombContainer = container {
-		val bombBackground = circle(40.0, Colors["#e6e6e6"])
+		val bombBackground = roundRect(cellSize*2.0, cellSize*1.5, 10.0, fill=Colors["#e6e6e6A0"])
 		alignTopToBottomOf(backgroundRect, 18)
 		alignLeftToLeftOf(backgroundRect, fieldWidth/5)
 		image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg ){
@@ -227,36 +237,38 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 		}
 	}
 
-	magnetContainer = container {
-		val bombBackground = circle(40.0, Colors["#e6e6e6"])
+	rocketContainer = container {
+		val rocketBackground = roundRect(cellSize*2.0, cellSize*1.5, 10.0, fill=Colors["#e6e6e6A0"])
+		val rocketWidth = 43
+		val rocketHeight = 60
 		alignTopToBottomOf(backgroundRect, 18)
 		alignRightToRightOf(backgroundRect, fieldWidth/5)
-		image(if (magnetsLoadedCount.value > 0) loadedMagnetImg else emptyMagnetImg ){
-			size(65, 60)
-			centerOn(bombBackground)
+		image(if (rocketsLoadedCount.value > 0) loadedRocketImg else emptyRocketImg ){
+			size(rocketWidth, rocketHeight)
+			centerOn(rocketBackground)
 		}
 		onClick {
-			if(magnetsLoadedCount.value > 0 && !showingRestart) {
-				magnetSelection.toggleSelect()
-				animateSelection(this, magnetSelection.selected)
-				if (!magnetSelection.selected) this.parent?.removeMagnetSelection()
+			if(rocketsLoadedCount.value > 0 && !showingRestart) {
+				rocketSelection.toggleSelect()
+				animateSelection(this, rocketSelection.selected)
+				if (!rocketSelection.selected) this.parent?.removeRocketSelection()
 			}
 		}
-		magnetsLoadedCount.observe {
+		rocketsLoadedCount.observe {
 			this.removeChildrenIf{ index, _ -> index == 1}
-			image(if (magnetsLoadedCount.value > 0) loadedMagnetImg else emptyMagnetImg ){
-				size(65,60)
-				centerOn(bombBackground)
+			image(if (rocketsLoadedCount.value > 0) loadedRocketImg else emptyRocketImg ){
+				size(rocketWidth, rocketHeight)
+				centerOn(rocketBackground)
 			}
 		}
 	}
 
-	text(magnetsLoadedCount.value.toString(), cellSize * 1.0, Colors.BLACK, font) {
+	text(rocketsLoadedCount.value.toString(), cellSize * 1.0, Colors.BLACK, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
 		alignment = TextAlignment.RIGHT
-		alignTopToBottomOf(magnetContainer, -20)
-		alignRightToRightOf(magnetContainer)
-		magnetsLoadedCount.observe {
+		alignTopToBottomOf(rocketContainer, -20)
+		alignRightToRightOf(rocketContainer)
+		rocketsLoadedCount.observe {
 			text = it.toString()
 		}
 	}
@@ -264,8 +276,8 @@ suspend fun main() = Korge(width = 480, height = 800, title = "2048", bgcolor = 
 
 	bombScaleNormal = bombContainer.scale
 	bombScaleSelected = bombScaleNormal * 1.2
-	magnetScaleNormal = magnetContainer.scale
-	magnetScaleSelected = magnetScaleNormal * 1.2
+	rocketScaleNormal = rocketContainer.scale
+	rocketScaleSelected = rocketScaleNormal * 1.2
 
 	Napier.d("UI Initialized")
 
@@ -387,7 +399,7 @@ fun Container.restart() {
 	Napier.d("Running Restart Function...")
 	score.update(0)
 	bombsLoadedCount.update(startingBombCount)
-	magnetsLoadedCount.update(startingMagnetCount)
+	rocketsLoadedCount.update(startingRocketCount)
 	blocksMap.values.forEach { it.removeFromParent() }
 	blocksMap.clear()
 	blocksMap = initializeRandomBlocksMap ()

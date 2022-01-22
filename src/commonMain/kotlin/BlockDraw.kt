@@ -49,7 +49,7 @@ fun Stage.unsuccessfulShape() {
 }
 
 fun Stage.successfulShape() {
-    if (hoveredPositions.size >= 9) tryAddMagnets(1)
+    if (hoveredPositions.size >= 9) tryAddRockets(1)
     val pattern = determinePattern(hoveredPositions.toMutableList())
     val scoredPoints = determineScore(hoveredPositions.toMutableList())
     Napier.d("Hovered position size ${hoveredPositions.size}")
@@ -99,36 +99,36 @@ fun Container.removeBombHover () {
     hoveredBombPositions.clear()
 }
 
-fun tryAddMagnets(numberOfMagnets: Int){
-    Napier.d("Trying to add $numberOfMagnets magnets")
-    val newMagnetCount = min(magnetsLoadedCount.value + numberOfMagnets, maxMagnetCount)
-    magnetsLoadedCount.update(newMagnetCount)
+fun tryAddRockets(numberOfRockets: Int){
+    Napier.d("Trying to add $numberOfRockets rockets")
+    val newRocketCount = min(rocketsLoadedCount.value + numberOfRockets, maxRocketCount)
+    rocketsLoadedCount.update(newRocketCount)
 }
 
-fun removeMagnet(){
-    Napier.d("Removing a magnet")
-    val newMagnetCount = max(magnetsLoadedCount.value - 1, 0)
-    magnetsLoadedCount.update(newMagnetCount)
+fun removeRocket(){
+    Napier.d("Removing a rocket")
+    val newRocketCount = max(rocketsLoadedCount.value - 1, 0)
+    rocketsLoadedCount.update(newRocketCount)
 }
 
-fun Stage.drawMagnetSelection (maybePosition: Position?) {
+fun Stage.drawRocketSelection (maybePosition: Position?) {
     when (true) {
-        (maybePosition == null) -> Napier.e("drawMagnetSelection tried to draw a main block that is null")
-        (!magnetSelection.selected) -> Napier.e("drawMagnetSelection tried to draw  when magnet is unselected")
-        (magnetSelection.firstPosition == null) -> {
-            magnetSelection.selectFirst(maybePosition)
-            updateBlock(blocksMap[maybePosition]!!.selectMagnet(), maybePosition)
+        (maybePosition == null) -> Napier.e("drawRocketSelection tried to draw a main block that is null")
+        (!rocketSelection.selected) -> Napier.e("drawRocketSelection tried to draw  when rocket is unselected")
+        (rocketSelection.firstPosition == null) -> {
+            rocketSelection.selectFirst(maybePosition)
+            updateBlock(blocksMap[maybePosition]!!.selectRocket(), maybePosition)
         }
-        (magnetSelection.firstPosition == maybePosition) -> {
-            magnetSelection.unselectFirst()
+        (rocketSelection.firstPosition == maybePosition) -> {
+            rocketSelection.unselectFirst()
             updateBlock(blocksMap[maybePosition]!!.unselect(), maybePosition)
         }
-        (magnetSelection.secondPosition == null) -> {
-            magnetSelection.selectSecond(maybePosition)
-            animateMagnet(magnetSelection.copy())
-            removeMagnet()
-            magnetSelection.unselect()
-            animateSelection(magnetContainer, false)
+        (rocketSelection.secondPosition == null) -> {
+            rocketSelection.selectSecond(maybePosition)
+            animateRocket(rocketSelection.copy())
+            removeRocket()
+            rocketSelection.unselect()
+            animateSelection(rocketContainer, false)
         }
         else ->
         {
@@ -137,22 +137,22 @@ fun Stage.drawMagnetSelection (maybePosition: Position?) {
     }
 }
 
-fun Container.removeMagnetSelection () {
-    if (magnetSelection.firstPosition != null && blocksMap[magnetSelection.firstPosition] != null) {
+fun Container.removeRocketSelection () {
+    if (rocketSelection.firstPosition != null && blocksMap[rocketSelection.firstPosition] != null) {
         updateBlock(
-            blocksMap[magnetSelection.firstPosition]!!.unselect(),
-            magnetSelection.firstPosition!!
+            blocksMap[rocketSelection.firstPosition]!!.unselect(),
+            rocketSelection.firstPosition!!
         )
     }else {
-        Napier.d("No first magnet position to remove")
+        Napier.d("No first rocket position to remove")
     }
-    if (magnetSelection.secondPosition != null && blocksMap[magnetSelection.secondPosition] != null) {
+    if (rocketSelection.secondPosition != null && blocksMap[rocketSelection.secondPosition] != null) {
         updateBlock(
-            blocksMap[magnetSelection.secondPosition]!!.unselect(),
-            magnetSelection.secondPosition!!
+            blocksMap[rocketSelection.secondPosition]!!.unselect(),
+            rocketSelection.secondPosition!!
         )
     }else {
-        Napier.d("No second magnet position to remove")
+        Napier.d("No second rocket position to remove")
     }
-    magnetSelection.unselect()
+    rocketSelection.unselect()
 }

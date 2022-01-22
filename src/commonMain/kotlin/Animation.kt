@@ -86,7 +86,7 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
         }
         block {
             stopAnimating()
-            if (!hasAvailableMoves() && bombsLoadedCount.value == 0 && magnetsLoadedCount.value == 0) {
+            if (!hasAvailableMoves() && bombsLoadedCount.value == 0 && rocketsLoadedCount.value == 0) {
                 Napier.d("Game Over!")
                 showGameOver { restart() }
             }
@@ -214,15 +214,15 @@ fun Stage.animateBomb() = launchImmediately {
     stopAnimating()
 }
 
-fun Stage.animateMagnet(selection: MagnetSelection) = launchImmediately {
+fun Stage.animateRocket(selection: RocketSelection) = launchImmediately {
     when (true) {
-        (selection.firstPosition == null) -> Napier.e("No first position when animating magnets")
-        (selection.secondPosition == null) -> Napier.e("No first position when animating magnets")
+        (selection.firstPosition == null) -> Napier.e("No first position when animating rockets")
+        (selection.secondPosition == null) -> Napier.e("No first position when animating rockets")
         else -> {
             startAnimating()
             val firstPosition = selection.firstPosition!!
             val secondPosition = selection.secondPosition!!
-            Napier.d("Magnetting block from ${firstPosition.log()} to ${secondPosition.log()}")
+            Napier.d("Rocketting block from ${firstPosition.log()} to ${secondPosition.log()}")
             animateSequence {
                 parallel {
                     blocksMap[firstPosition]!!.moveTo(

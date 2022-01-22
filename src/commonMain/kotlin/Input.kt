@@ -56,9 +56,9 @@ fun Stage.handleDown(point: Point){
         bombSelected -> {
             isPressed = true
             drawBombHover(getPositionFromPoint(point)) }
-        magnetSelection.selected -> {
+        rocketSelection.selected -> {
             isPressed = true
-            drawMagnetSelection(getPositionFromPoint(point)) }
+            drawRocketSelection(getPositionFromPoint(point)) }
         else -> {
             isPressed = true
             return pressDown(getPositionFromPoint(point)) }
@@ -70,7 +70,7 @@ fun Container.handleHover(point: Point){
         when (true) {
             isAnimating,
             showingRestart,
-            magnetSelection.selected -> return
+            rocketSelection.selected -> return
             bombSelected ->{
                 removeBombHover()
                 drawBombHover(getPositionFromPoint(point))
@@ -84,7 +84,7 @@ fun Stage.handleUp(point: Point){
     isPressed = false
     when (true) {
         isAnimating,
-        magnetSelection.selected,
+        rocketSelection.selected,
         showingRestart -> return
         bombSelected ->{
             val maybePosition = getPositionFromPoint(point)

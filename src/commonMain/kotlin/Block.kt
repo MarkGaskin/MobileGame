@@ -12,14 +12,14 @@ fun Container.removeBlock(block: Block) {
 }
 
 enum class BlockSelection () {
-    UNSELECTED, NORMAL, BOMB, MAGNET, PATTERN;
+    UNSELECTED, NORMAL, BOMB, ROCKET, PATTERN;
 
     fun color (default: RGBA) =
         when (this){
             UNSELECTED -> default
             NORMAL -> Colors["#6a00b0"]
             BOMB -> Colors["#990a00"]
-            MAGNET -> Colors["#00bda7"]
+            ROCKET -> Colors["#00bda7"]
             PATTERN -> Colors["#db8504"]
         }
 }
@@ -27,7 +27,7 @@ enum class BlockSelection () {
 data class Block(val id: Int, var number: Number, var selection: BlockSelection = BlockSelection.UNSELECTED) : Container() {
 
     init {
-        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.color(number.color), strokeThickness = 4.0)
+        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.color(number.color), strokeThickness = 2.0)
 
         val textColor = when (number) {
             ZERO, ONE, TWO, FOUR -> Colors.BLACK
@@ -57,8 +57,8 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
         return this
     }
 
-    fun selectMagnet (): Block {
-        this.selection = BlockSelection.MAGNET
+    fun selectRocket (): Block {
+        this.selection = BlockSelection.ROCKET
         return this
     }
 
