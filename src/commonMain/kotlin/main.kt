@@ -135,16 +135,34 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
-	val bgLogo = roundRect(cellSize, cellSize, 5, fill = Colors["#6a00b0"]) {
-		position(leftIndent + cellIndentSize, 12)
-	}
-	text("tr.io", cellSize * 0.5, Colors.WHITE, font).centerOn(bgLogo)
 
-	val bgBest = roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#bbae9e"]) {
-		alignRightToRightOf(backgroundRect)
-		alignTopToTopOf(bgLogo,cellSize*0.5)
+
+	val restartImg = resourcesVfs["restart.png"].readBitmap()
+
+	val btnSize = cellSize * 1.0
+	val restartBlock = container {
+		val background = roundRect(btnSize, btnSize, 5.0, fill = Colors["#f7c469"])
+		image(restartImg) {
+			size(btnSize * 0.8, btnSize * 0.8)
+			centerOn(background)
+		}
+		position(leftIndent + cellIndentSize + 24, 36)
+		onClick {
+			if(!showingRestart) {
+				this@Korge.showRestart { this@Korge.restart() }
+				Napier.d("Restart Button Clicked")
+			}
+			else{
+				Napier.d("Restart Button Clicked when already showing restart")
+			}
+		}
 	}
-	text("BEST", cellSize * 0.5, RGBA(239, 226, 210), font) {
+
+	val bgBest = roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#9182c4"]) {
+		alignRightToRightOf(backgroundRect)
+		alignTopToTopOf(restartBlock, -cellSize*0.25)
+	}
+	text("BEST", cellSize * 0.5, Colors["#ebd9dd"], font) {
 		centerXOn(bgBest)
 		alignTopToTopOf(bgBest, 3.0)
 	}
@@ -158,11 +176,11 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		}
 	}
 
-	val bgScore = roundRect(cellSize * 2.5, cellSize*1.5, 5.0, fill = Colors["#bbae9e"]) {
+	val bgScore = roundRect(cellSize * 2.5, cellSize*1.5, 5.0, fill = Colors["#9182c4"]) {
 		alignRightToLeftOf(bgBest, 24.0)
 		alignTopToTopOf(bgBest)
 	}
-	text("SCORE", cellSize * 0.5, RGBA(239, 226, 210), font) {
+	text("SCORE", cellSize * 0.5, Colors["#ebd9dd"], font) {
 		centerXOn(bgScore)
 		alignTopToTopOf(bgScore, 3.0)
 	}
@@ -174,28 +192,6 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		alignTopToTopOf(bgScore, 5.0 + (cellSize*0.5) + 5.0)
 		score.observe {
 			text = it.toString()
-		}
-	}
-
-	val restartImg = resourcesVfs["restart.png"].readBitmap()
-
-	val btnSize = cellSize * 0.5
-	val restartBlock = container {
-		val background = roundRect(btnSize, btnSize, 5.0, fill = RGBA(185, 174, 160))
-		image(restartImg) {
-			size(btnSize * 0.8, btnSize * 0.8)
-			centerOn(background)
-		}
-		alignTopToBottomOf(bgLogo, 5)
-		alignRightToRightOf(bgLogo)
-		onClick {
-			if(!showingRestart) {
-				this@Korge.showRestart { this@Korge.restart() }
-				Napier.d("Restart Button Clicked")
-			}
-			else{
-				Napier.d("Restart Button Clicked when already showing restart")
-			}
 		}
 	}
 
