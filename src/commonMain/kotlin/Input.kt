@@ -1,5 +1,6 @@
 import com.soywiz.korge.view.Container
 import com.soywiz.korge.view.Stage
+import com.soywiz.korge.view.position
 import com.soywiz.korma.geom.Point
 import io.github.aakira.napier.Napier
 
@@ -165,16 +166,19 @@ fun Stage.hoverBlock (maybePosition: Position?) {
                 updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
             }
 
-            checkForHoveredPattern()
+            checkForHoveredPattern(maybePosition!!)
         }
     }
 }
 
-fun Stage.checkForHoveredPattern(){
+fun Stage.checkForHoveredPattern(position: Position){
     val isPowerUp = determinePattern(hoveredPositions).isPowerUp()
     if (isPowerUp && !isPatternHovered){
         isPatternHovered = true
         hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.selectPattern(), position) }
+    }
+    else if (isPowerUp && isPatternHovered){
+        updateBlock(blocksMap[position]!!.selectPattern(), position)
     }
     else if (!isPowerUp && isPatternHovered)
     {

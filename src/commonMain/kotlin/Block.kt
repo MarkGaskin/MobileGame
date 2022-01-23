@@ -28,6 +28,7 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
 
     init {
         roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.color(number.color), strokeThickness = 3.0)
+        roundRect(cellSize, cellSize, 5, fill = selection.color(number.color).withA(70),  )
 
         val textColor = when (number) {
             ZERO, ONE, TWO, FOUR -> Colors.BLACK
