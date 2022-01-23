@@ -31,7 +31,7 @@ fun Stage.updateBlock(block: Block, position: Position){
     deleteBlock(block)
     blocksMap[position] = newBlock
     drawBlock(newBlock, position)
-    animateSelectedBlock(newBlock, newBlock.selection == BlockSelection.PATTERN || newBlock.selection == BlockSelection.NORMAL)
+    animateSelectedBlock(newBlock, newBlock.isGenerallySelected())
 }
 
 fun Container.atLeastThreeSelected(): Boolean {

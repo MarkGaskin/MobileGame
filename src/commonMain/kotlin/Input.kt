@@ -171,6 +171,9 @@ fun Stage.hoverBlock (maybePosition: Position?) {
     }
 }
 
+
+var isPatternHovered: Boolean = false
+
 fun Stage.checkForHoveredPattern(position: Position){
     val isPowerUp = determinePattern(hoveredPositions).isPowerUp()
     if (isPowerUp && !isPatternHovered){
@@ -184,5 +187,9 @@ fun Stage.checkForHoveredPattern(position: Position){
     {
         isPatternHovered = false
         hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.select(), position) }
+    }
+    else if (hoveredPositions.size >= rocketPowerUpLength)
+    {
+        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.selectLarge(), position) }
     }
 }

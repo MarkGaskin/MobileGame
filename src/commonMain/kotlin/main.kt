@@ -49,7 +49,6 @@ var blocksMap: MutableMap<Position, Block> = mutableMapOf()
 
 var hoveredPositions: MutableList<Position> = mutableListOf()
 var hoveredBombPositions: MutableList<Position> = mutableListOf()
-var isPatternHovered: Boolean = false
 
 var isAnimating: Boolean = false
 fun startAnimating() { isAnimating = true }

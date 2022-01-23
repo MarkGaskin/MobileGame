@@ -12,12 +12,13 @@ fun Container.removeBlock(block: Block) {
 }
 
 enum class BlockSelection () {
-    UNSELECTED, NORMAL, BOMB, ROCKET, PATTERN;
+    UNSELECTED, NORMAL, LARGE, BOMB, ROCKET, PATTERN;
 
     fun color (default: RGBA) =
         when (this){
             UNSELECTED -> default
             NORMAL -> Colors["#6a00b0"]
+            LARGE -> Colors["#d19feb"]
             BOMB -> Colors["#990a00"]
             ROCKET -> Colors["#00bda7"]
             PATTERN -> Colors["#db8504"]
@@ -50,6 +51,15 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
 
     fun select (): Block {
         this.selection = BlockSelection.NORMAL
+        return this
+    }
+
+    fun isGenerallySelected (): Boolean{
+        return (this.selection == BlockSelection.NORMAL || this.selection == BlockSelection.PATTERN || this.selection == BlockSelection.LARGE)
+    }
+
+    fun selectLarge (): Block {
+        this.selection = BlockSelection.LARGE
         return this
     }
 
