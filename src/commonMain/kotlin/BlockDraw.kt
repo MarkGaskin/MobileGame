@@ -26,11 +26,12 @@ fun Container.drawAllBlocks () {
         .forEach { (position, block) -> drawBlock(block, position) }
 }
 
-fun Container.updateBlock(block: Block, position: Position){
+fun Stage.updateBlock(block: Block, position: Position){
     val newBlock = block.copy()
     deleteBlock(block)
     blocksMap[position] = newBlock
     drawBlock(newBlock, position)
+    animateSelectedBlock(newBlock, newBlock.selection == BlockSelection.PATTERN || newBlock.selection == BlockSelection.NORMAL)
 }
 
 fun Container.atLeastThreeSelected(): Boolean {
@@ -39,6 +40,7 @@ fun Container.atLeastThreeSelected(): Boolean {
 
 fun Stage.unsuccessfulShape() {
     Napier.d("Shape was unsuccessful ")
+    removeSelection()
     hoveredPositions
         .forEach { position ->
             blocksMap[position] = blocksMap[position]?.unselect()!!
@@ -72,7 +74,7 @@ fun removeBomb(){
     bombsLoadedCount.update(newBombCount)
 }
 
-fun Container.drawBombHover (maybePosition: Position?) {
+fun Stage.drawBombHover (maybePosition: Position?) {
     if (maybePosition != null) {
         hoveredBombPositions = tryAllSurroundingPositions(maybePosition).toMutableList()
         hoveredBombPositions.add(maybePosition)
@@ -88,7 +90,7 @@ fun Container.drawBombHover (maybePosition: Position?) {
     }
 }
 
-fun Container.removeBombHover () {
+fun Stage.removeBombHover () {
     hoveredBombPositions.forEach { pos ->
         if (blocksMap[pos] != null) {
             updateBlock(blocksMap[pos]!!.unselect(), pos)
@@ -128,7 +130,7 @@ fun Stage.drawRocketSelection (maybePosition: Position?) {
             animateRocket(rocketSelection.copy())
             removeRocket()
             rocketSelection.unselect()
-            animateSelection(rocketContainer, false)
+            animatePowerUpSelection(rocketContainer, false)
         }
         else ->
         {
@@ -137,7 +139,7 @@ fun Stage.drawRocketSelection (maybePosition: Position?) {
     }
 }
 
-fun Container.removeRocketSelection () {
+fun Stage.removeRocketSelection () {
     if (rocketSelection.firstPosition != null && blocksMap[rocketSelection.firstPosition] != null) {
         updateBlock(
             blocksMap[rocketSelection.firstPosition]!!.unselect(),
@@ -155,4 +157,12 @@ fun Container.removeRocketSelection () {
         Napier.d("No second rocket position to remove")
     }
     rocketSelection.unselect()
+}
+
+fun Stage.removeSelection() {
+    hoveredPositions.map { position -> animateSelectedBlock(blocksMap[position], false)}
+}
+
+fun Stage.selectBlocks() {
+    hoveredPositions.map { position -> animateSelectedBlock(blocksMap[position], true)}
 }

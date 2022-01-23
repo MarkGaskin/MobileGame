@@ -23,11 +23,12 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
                 mergePositions.forEach { position ->
                     Napier.d("Moving block from ${position.log()} to new block")
                     blocksMap[position]!!.moveTo(
-                        getXFromPosition(headPosition),
-                        getYFromPosition(headPosition),
+                        getXFromPosition(headPosition) + cellSize / 2,
+                        getYFromPosition(headPosition) + cellSize / 2,
                         0.15.seconds,
                         Easing.LINEAR
                     )
+                    blocksMap[position]!!.scaleTo(0, 0, 0.15.seconds, Easing.LINEAR)
                 }
 
             }
@@ -132,7 +133,7 @@ fun Animator.animateConsumption(block: Block) {
     )
 }
 
-fun Stage.animateSelection(image: View, toggle: Boolean) = launchImmediately {
+fun Stage.animatePowerUpSelection(image: View, toggle: Boolean) = launchImmediately {
     animateSequence {
         val x = image.x
         val y = image.y
@@ -217,12 +218,12 @@ fun Stage.animateBomb() = launchImmediately {
 fun Stage.animateRocket(selection: RocketSelection) = launchImmediately {
     when (true) {
         (selection.firstPosition == null) -> Napier.e("No first position when animating rockets")
-        (selection.secondPosition == null) -> Napier.e("No first position when animating rockets")
+        (selection.secondPosition == null) -> Napier.e("No second position when animating rockets")
         else -> {
             startAnimating()
             val firstPosition = selection.firstPosition!!
             val secondPosition = selection.secondPosition!!
-            Napier.d("Rocketting block from ${firstPosition.log()} to ${secondPosition.log()}")
+            Napier.d("Rocketing block from ${firstPosition.log()} to ${secondPosition.log()}")
             animateSequence {
                 parallel {
                     blocksMap[firstPosition]!!.moveTo(
@@ -245,3 +246,34 @@ fun Stage.animateRocket(selection: RocketSelection) = launchImmediately {
         }
     }
 }
+
+fun Stage.animateSelectedBlock(maybeBlock: Block?, selected: Boolean) = launchImmediately {
+    if (maybeBlock == null){
+        Napier.e("Empty block passed into animateSelectedBlock")
+    }
+    else {
+        val block = maybeBlock!!
+        animateSequence {
+            val x = block.x
+            val y = block.y
+            if (selected) {
+                tween(
+                    block::x[x - 4],
+                    block::y[y - 4],
+                    block::scale[blockScaleSelected],
+                    time = 0.1.seconds,
+                    easing = Easing.LINEAR
+                )
+            } else {
+                tween(
+                    block::x[x],
+                    block::y[y],
+                    block::scale[blockScaleNormal],
+                    time = 0.1.seconds,
+                    easing = Easing.LINEAR
+                )
+            }
+        }
+    }
+}
+

@@ -27,7 +27,7 @@ enum class BlockSelection () {
 data class Block(val id: Int, var number: Number, var selection: BlockSelection = BlockSelection.UNSELECTED) : Container() {
 
     init {
-        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.color(number.color), strokeThickness = 2.0)
+        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.color(number.color), strokeThickness = 3.0)
 
         val textColor = when (number) {
             ZERO, ONE, TWO, FOUR -> Colors.BLACK

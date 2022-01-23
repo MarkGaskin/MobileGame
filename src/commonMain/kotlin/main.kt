@@ -12,7 +12,6 @@ import com.soywiz.korio.file.std.*
 import com.soywiz.korma.geom.*
 import com.soywiz.korma.geom.vector.*
 import com.soywiz.korim.font.*
-import com.soywiz.korim.text.HorizontalAlign
 import com.soywiz.korim.text.TextAlignment
 import com.soywiz.korio.async.ObservableProperty
 import kotlin.properties.Delegates
@@ -50,6 +49,7 @@ var blocksMap: MutableMap<Position, Block> = mutableMapOf()
 
 var hoveredPositions: MutableList<Position> = mutableListOf()
 var hoveredBombPositions: MutableList<Position> = mutableListOf()
+var isPatternHovered: Boolean = false
 
 var isAnimating: Boolean = false
 fun startAnimating() { isAnimating = true }
@@ -77,6 +77,9 @@ var bombScaleNormal = 0.0
 var bombScaleSelected = 0.0
 var rocketScaleNormal = 0.0
 var rocketScaleSelected = 0.0
+
+var blockScaleNormal = 0.0
+var blockScaleSelected = 0.0
 
 var gameField = RoundRect(0.0,0.0,0.0)
 
@@ -215,7 +218,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		onClick {
 			if(bombsLoadedCount.value > 0 && !showingRestart) {
 				bombSelected = !bombSelected
-				animateSelection(this, bombSelected)
+				animatePowerUpSelection(this, bombSelected)
 			}
 		}
 		bombsLoadedCount.observe {
@@ -327,8 +330,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		onClick {
 			if(rocketsLoadedCount.value > 0 && !showingRestart) {
 				rocketSelection.toggleSelect()
-				animateSelection(this, rocketSelection.selected)
-				if (!rocketSelection.selected) this.parent?.removeRocketSelection()
+				animatePowerUpSelection(this, rocketSelection.selected)
+				if (!rocketSelection.selected) removeRocketSelection()
 			}
 		}
 		rocketsLoadedCount.observe {
@@ -437,6 +440,9 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 
 	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
+
+	blockScaleNormal = blocksMap[Position(0,0)]!!.scale
+	blockScaleSelected = blockScaleNormal * 1.2
 
 
 	touch {
