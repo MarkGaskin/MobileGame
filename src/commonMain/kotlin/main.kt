@@ -55,7 +55,7 @@ fun startAnimating() { isAnimating = true }
 fun stopAnimating() { isAnimating = false }
 
 var showingRestart: Boolean = false
-
+var restartPopupContainer: Container = Container()
 
 const val startingBombCount = 1
 const val maxBombCount = 5
@@ -70,7 +70,8 @@ var rocketsLoadedCount = ObservableProperty(startingRocketCount)
 var rocketSelection = RocketSelection()
 var rocketContainer: Container = Container()
 
-var highestTierReached = 3
+const val startingHighestTierReached = 3
+var highestTierReached = startingHighestTierReached
 
 var bombScaleNormal = 0.0
 var bombScaleSelected = 0.0
@@ -154,11 +155,14 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		alignBottomToTopOf(gameField, cellSize * 0.75)
 		onClick {
 			if(!showingRestart) {
-				this@Korge.showRestart { this@Korge.restart() }
+				unselectAllPowerUps()
+				restartPopupContainer = this@Korge.showRestart { this@Korge.restart() }
 				Napier.d("Restart Button Clicked")
 			}
 			else{
 				Napier.d("Restart Button Clicked when already showing restart")
+				showingRestart = false
+				restartPopupContainer.removeFromParent()
 			}
 		}
 	}
@@ -503,6 +507,17 @@ fun Container.showGameOver(onGameOver: () -> Unit) = container {
 	}
 }
 
+fun Stage.unselectAllPowerUps (): Unit {
+	if (bombSelected) {
+		bombSelected = false
+		animatePowerUpSelection(bombContainer, false)
+	}
+	if (rocketSelection.selected){
+		rocketSelection.unselect()
+		animatePowerUpSelection(rocketContainer, false)
+	}
+}
+
 fun Container.showRestart(onRestart: () -> Unit) = container {
 	showingRestart = true
 	Napier.d("Showing Restart Container...")
@@ -554,6 +569,7 @@ fun Container.showRestart(onRestart: () -> Unit) = container {
 fun Container.restart() {
 	Napier.d("Running Restart Function...")
 	score.update(0)
+	highestTierReached = startingHighestTierReached
 	bombsLoadedCount.update(startingBombCount)
 	rocketsLoadedCount.update(startingRocketCount)
 	blocksMap.values.forEach { it.removeFromParent() }

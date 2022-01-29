@@ -125,5 +125,8 @@ fun determinePattern(positionList: MutableList<Position>): Pattern {
         Napier.v("Boring pattern found")
         return Pattern.UNDETERMINED
     }
+}
 
+fun findHighestTier(): Int {
+    return blocksMap.maxByOrNull { (_, block) -> block.number.value }?.value?.number?.ordinal ?: 0
 }

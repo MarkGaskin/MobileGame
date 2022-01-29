@@ -18,10 +18,10 @@ enum class BlockSelection () {
         when (this){
             UNSELECTED -> default
             NORMAL -> Colors["#6a00b0"]
-            LARGE -> Colors["#d19feb"]
+            LARGE -> Colors["#ed8282"]
             BOMB -> Colors["#990a00"]
-            ROCKET -> Colors["#00bda7"]
-            PATTERN -> Colors["#db8504"]
+            ROCKET -> Colors["#d19feb"]
+            PATTERN -> Colors["#37b1ee"]
         }
 }
 

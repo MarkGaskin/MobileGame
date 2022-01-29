@@ -43,16 +43,12 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
                     deleteBlock(blocksMap[headPosition]!!)
                     blocksMap[headPosition] = newBlock
                     drawBlock(newBlock, headPosition)
-                    if (value.ordinal > highestTierReached){
-                        tryAddBombs(value.ordinal - highestTierReached)
-                        highestTierReached = value.ordinal
-                    }
                 }
             }
         }
         sequenceLazy {
             val newPositionBlocks = generateBlocksForEmptyPositions()
-            Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
+            Napier.d("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
             blocksMap.putAll(newPositionBlocks)
 
 
@@ -87,6 +83,12 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
         }
         block {
             stopAnimating()
+            val currentTier = findHighestTier()
+            Napier.d("Current highest tier: $currentTier. Highest tier reached: $highestTierReached")
+            if (currentTier > highestTierReached){
+                tryAddBombs(currentTier - highestTierReached)
+                highestTierReached = currentTier
+            }
             if (!hasAvailableMoves() && bombsLoadedCount.value == 0 && rocketsLoadedCount.value == 0) {
                 Napier.d("Game Over!")
                 showGameOver { restart() }
@@ -160,7 +162,7 @@ fun Stage.animatePowerUpSelection(image: View, toggle: Boolean) = launchImmediat
 
 fun Stage.generateNewBlocks () = launchImmediately {
     val newPositionBlocks = generateBlocksForEmptyPositions()
-    Napier.w("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
+    Napier.d("Generating new blocks ${newPositionBlocks.map { (position, block) -> "${block.number.value} at (${position.log()}\n" }}")
     blocksMap.putAll(newPositionBlocks)
 
     animateSequence {
