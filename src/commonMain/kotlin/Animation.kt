@@ -218,7 +218,7 @@ fun Stage.animateBomb() = launchImmediately {
 }
 
 fun Stage.animateRocket(selection: RocketSelection) = launchImmediately {
-    when (true) {
+    when {
         (selection.firstPosition == null) -> Napier.e("No first position when animating rockets")
         (selection.secondPosition == null) -> Napier.e("No second position when animating rockets")
         else -> {

@@ -1,6 +1,7 @@
 import io.github.aakira.napier.Napier
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.*
 
@@ -36,7 +37,7 @@ fun initBlock (): Block {
     val selectedId = nextBlockId
     nextBlockId++;
     val random = Random.nextDouble()
-    return when (true){
+    return when {
         selectedId == random27ID -> Block(id=selectedId, Number.THREE)
         random < 0.1 -> Block(id = selectedId, Number.THREE)
         random < 0.2 -> Block(id = selectedId, Number.TWO)
@@ -133,7 +134,7 @@ fun getRandomNumber(): Number {
     val random = Random.nextDouble()
     return when (blocksMap.maxOf { (_, block) -> block.number.ordinal }) {
         in 0..5 -> {
-            when (true) {
+            when {
                 random < 0.05 -> Number.THREE
                 random < 0.2 -> Number.TWO
                 random < 0.55 -> Number.ONE
@@ -141,7 +142,7 @@ fun getRandomNumber(): Number {
             }
         }
         else -> {
-            when (true) {
+            when {
                 random < 0.1 -> Number.THREE
                 random < 0.3 -> Number.TWO
                 random < 0.65 -> Number.ONE
@@ -164,7 +165,7 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
     val mergeMap = mutableMapOf<Position, Pair<Number,List<Position>>>()
     val pattern = determinePattern(positionList)
 
-    val nextNumber =
+    var nextNumber =
         when (positionList.size) {
             in 0..5 -> blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
             in 6..18 -> blocksMap[positionList.first()]?.number?.next()?.next() ?: Number.ZERO
@@ -174,12 +175,6 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
         Pattern.TRIPLE -> {
             val last = positionList.removeLast()
             mergeMap[last] = Pair(nextNumber, positionList)
-        }
-        Pattern.O4 -> {
-            val last = positionList.removeLast()
-            val secondLast = positionList.removeLast()
-            mergeMap[last] = Pair(nextNumber, positionList.subList(0,1).toMutableList())
-            mergeMap[secondLast] = Pair(nextNumber, positionList.subList(1,2).toMutableList())
         }
         Pattern.I4 -> {
             val last = positionList.removeLast()
@@ -203,58 +198,37 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
             mergeMap[secondLast] = Pair(nextNumber, positionList.subList(0,2).toMutableList())
             mergeMap[last] = Pair(nextNumber.next(), positionList.subList(2,5).toMutableList())
         }
-        Pattern.D6 -> {
+        Pattern.RECTANGLE -> {
             val last = positionList.last()
-            val xList = positionList.map { position -> position.x }
-            val xMax = xList.maxOrNull() ?: 100
-            val xMin = xList.minOrNull() ?: 0
-            val yList = positionList.map { position -> position.y }
-            val yMax = yList.maxOrNull() ?: 100
-            val yMin = yList.minOrNull() ?: 0
+            val secondLast = positionList[positionList.size - 2]
 
-            if (xMax - xMin == 1){
-                val mergeX = if (last.x == xMax) xMin else xMax
-                for (i in 0 until 3){
-                    mergeMap[Position(last.x,yMin + i)] = Pair(nextNumber.previous(), listOf(Position(mergeX,yMin + i)))
-                }
-            }
-            else{
-                val mergeY = if (last.y == yMax) yMin else yMax
-                for (i in 0 until 3){
-                    mergeMap[Position(xMin + i, last.y)] = Pair(nextNumber.previous(), listOf(Position(xMin + i,mergeY)))
-                }
-            }
-        }
-        Pattern.D8 -> {
-            val last = positionList.last()
-            val xList = positionList.map { position -> position.x }
-            val xMax = xList.maxOrNull() ?: 100
-            val xMin = xList.minOrNull() ?: 0
-            val yList = positionList.map { position -> position.y }
-            val yMax = yList.maxOrNull() ?: 100
-            val yMin = yList.minOrNull() ?: 0
+            val uniqueX = positionList.fold(arrayOf<Int>(), { directionArray, position -> if (directionArray.contains(position.x)) directionArray else directionArray.plus(position.x)})
+            val uniqueY = positionList.fold(arrayOf<Int>(), { directionArray, position -> if (directionArray.contains(position.y)) directionArray else directionArray.plus(position.y)})
 
-            if (xMax - xMin == 1){
-                val mergeX = if (last.x == xMax) xMin else xMax
-                for (i in 0 until 4){
-                    mergeMap[Position(last.x,yMin + i)] = Pair(nextNumber.previous(), listOf(Position(mergeX,yMin + i)))
+            Napier.d("UniqueX size: ${uniqueX.size} UniqueY size: ${uniqueY.size}")
+
+            nextNumber = blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
+
+            val mergeNumber =
+                when (min(uniqueX.size, uniqueY.size)) {
+                    in 0 .. 2 -> nextNumber
+                    3 -> nextNumber.next()
+                    4 -> nextNumber.next().next()
+                    5 -> nextNumber.next().next().next()
+                    else -> nextNumber.next().next().next().next()
+                }
+
+            if (uniqueX.size < uniqueY.size || (uniqueX.size == uniqueY.size && last.x == secondLast.x)){
+                for (i in uniqueY){
+                    mergeMap[Position(last.x, i)] = Pair(mergeNumber, uniqueX.filter { x -> x != last.x }.map { x -> Position(x, i)})
+                }
+
+            }
+            else {
+                for (i in uniqueX){
+                    mergeMap[Position(i, last.y)] = Pair(mergeNumber, uniqueY.filter { y -> y != last.y }.map { y -> Position(i, y)})
                 }
             }
-            else{
-                val mergeY = if (last.y == yMax) yMin else yMax
-                for (i in 0 until 4){
-                    mergeMap[Position(xMin + i, last.y)] = Pair(nextNumber.previous(), listOf(Position(xMin + i,mergeY)))
-                }
-            }
-        }
-        Pattern.O9 -> {
-            val xList = positionList.map { position -> position.x }
-            val xAvg = xList.average().roundToInt()
-            val yList = positionList.map { position -> position.y }
-            val yAvg = yList.average().roundToInt()
-            val center = Position(xAvg, yAvg)
-            val updatedNextNumber = Number.values()[max(nextNumber.ordinal, blocksMap[center]?.number?.ordinal ?: 0)]
-            mergeMap[center] = Pair(updatedNextNumber.next().next(), positionList.filter {position -> position != center}.toMutableList())
         }
         else -> {
             val last = positionList.removeLast()

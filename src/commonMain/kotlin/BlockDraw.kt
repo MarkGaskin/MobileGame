@@ -114,7 +114,7 @@ fun removeRocket(){
 }
 
 fun Stage.drawRocketSelection (maybePosition: Position?) {
-    when (true) {
+    when {
         (maybePosition == null) -> Napier.e("drawRocketSelection tried to draw a main block that is null")
         (!rocketSelection.selected) -> Napier.e("drawRocketSelection tried to draw  when rocket is unselected")
         (rocketSelection.firstPosition == null) -> {

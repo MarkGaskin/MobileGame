@@ -1,6 +1,4 @@
-import com.soywiz.korge.view.Container
 import com.soywiz.korge.view.Stage
-import com.soywiz.korge.view.position
 import com.soywiz.korma.geom.Point
 import io.github.aakira.napier.Napier
 
@@ -51,7 +49,7 @@ fun getPositionFromPoint (point: Point): Position? {
 }
 
 fun Stage.handleDown(point: Point){
-    when (true) {
+    when {
         isAnimating -> return
         showingRestart -> return
         bombSelected -> {
@@ -68,9 +66,9 @@ fun Stage.handleDown(point: Point){
 
 fun Stage.handleHover(point: Point){
     if (isPressed) {
-        when (true) {
-            isAnimating,
-            showingRestart,
+        when {
+            isAnimating ||
+            showingRestart ||
             rocketSelection.selected -> return
             bombSelected ->{
                 removeBombHover()
@@ -83,9 +81,9 @@ fun Stage.handleHover(point: Point){
 
 fun Stage.handleUp(point: Point){
     isPressed = false
-    when (true) {
-        isAnimating,
-        rocketSelection.selected,
+    when {
+        isAnimating ||
+        rocketSelection.selected ||
         showingRestart -> return
         bombSelected ->{
             val maybePosition = getPositionFromPoint(point)
@@ -172,24 +170,33 @@ fun Stage.hoverBlock (maybePosition: Position?) {
 }
 
 
-var isPatternHovered: Boolean = false
+var hoveredSelection: BlockSelection = BlockSelection.NORMAL
 
 fun Stage.checkForHoveredPattern(position: Position){
     val isPowerUp = determinePattern(hoveredPositions).isPowerUp()
-    if (isPowerUp && !isPatternHovered){
-        isPatternHovered = true
-        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.selectPattern(), position) }
+    if (isPowerUp && hoveredSelection != BlockSelection.PATTERN){
+        hoveredSelection = BlockSelection.PATTERN
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectPattern(), position2) }
     }
-    else if (isPowerUp && isPatternHovered){
+    else if (isPowerUp){
         updateBlock(blocksMap[position]!!.selectPattern(), position)
     }
-    else if (!isPowerUp && isPatternHovered)
+    else if (hoveredPositions.size >= rocketPowerUpLength && hoveredSelection != BlockSelection.LARGE)
     {
-        isPatternHovered = false
-        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.select(), position) }
+        hoveredSelection = BlockSelection.LARGE
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectLarge(), position2) }
     }
     else if (hoveredPositions.size >= rocketPowerUpLength)
     {
-        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.selectLarge(), position) }
+        updateBlock(blocksMap[position]!!.selectLarge(), position)
+    }
+    else if (hoveredSelection != BlockSelection.NORMAL)
+    {
+        hoveredSelection = BlockSelection.NORMAL
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.select(), position2) }
+    }
+    else
+    {
+        updateBlock(blocksMap[position]!!.select(), position)
     }
 }

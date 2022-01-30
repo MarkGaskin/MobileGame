@@ -574,6 +574,6 @@ fun Container.restart() {
 	rocketsLoadedCount.update(startingRocketCount)
 	blocksMap.values.forEach { it.removeFromParent() }
 	blocksMap.clear()
-	blocksMap = initializeRandomBlocksMap ()
+	blocksMap = initializeOnesBlocksMap ()
 	drawAllBlocks()
 }
