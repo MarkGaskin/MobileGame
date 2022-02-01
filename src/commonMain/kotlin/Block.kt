@@ -12,21 +12,38 @@ fun Container.removeBlock(block: Block) {
 }
 
 enum class BlockSelection () {
-    UNSELECTED, NORMAL, BOMB, PATTERN;
+    UNSELECTED, SMALL, MEDIUM, LARGE, EXTRALARGE, BOMB, ROCKET, PATTERN;
 
-    fun color (default: RGBA) =
+    fun colorContent (number: Number) =
         when (this){
-            UNSELECTED -> default
-            NORMAL -> Colors["#6a00b0"]
+            UNSELECTED -> number.color
+            SMALL -> number.next().color
+            MEDIUM -> number.next().next().color
+            LARGE -> Colors["#ca9dd7"]
+            EXTRALARGE -> number.next().next().next().color
             BOMB -> Colors["#990a00"]
-            PATTERN -> Colors["#db8504"]
+            ROCKET -> Colors["#d19feb"]
+            PATTERN -> Colors["#37b1ee"]
+        }
+
+    fun colorBorder (number: Number) =
+        when (this){
+            UNSELECTED -> number.color
+            SMALL -> number.next().color
+            MEDIUM -> number.next().next().color
+            LARGE -> Colors["#ca9dd7"]
+            EXTRALARGE -> number.next().next().next().color
+            BOMB -> Colors["#990a00"]
+            ROCKET -> Colors["#d19feb"]
+            PATTERN -> Colors["#37b1ee"]
         }
 }
 
 data class Block(val id: Int, var number: Number, var selection: BlockSelection = BlockSelection.UNSELECTED) : Container() {
 
     init {
-        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.color(number.color), strokeThickness = 4.0)
+        roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.colorBorder(number), strokeThickness = 3.5)
+        roundRect(cellSize, cellSize, 5, fill = selection.colorContent(number).withA(80),  )
 
         val textColor = when (number) {
             ZERO, ONE, TWO, FOUR -> Colors.BLACK
@@ -47,12 +64,44 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
     }
 
     fun select (): Block {
-        this.selection = BlockSelection.NORMAL
+        this.selection = BlockSelection.SMALL
+        return this
+    }
+
+    fun isGenerallySelected (): Boolean{
+        return when (this.selection){
+            BlockSelection.PATTERN,
+            BlockSelection.SMALL,
+            BlockSelection.MEDIUM,
+            BlockSelection.LARGE,
+            BlockSelection.EXTRALARGE,
+            BlockSelection.ROCKET -> true
+            else -> false
+        }
+    }
+
+    fun selectMedium (): Block {
+        this.selection = BlockSelection.MEDIUM
+        return this
+    }
+
+    fun selectLarge (): Block {
+        this.selection = BlockSelection.LARGE
+        return this
+    }
+
+    fun selectExtraLarge (): Block {
+        this.selection = BlockSelection.EXTRALARGE
         return this
     }
 
     fun selectBomb (): Block {
         this.selection = BlockSelection.BOMB
+        return this
+    }
+
+    fun selectRocket (): Block {
+        this.selection = BlockSelection.ROCKET
         return this
     }
 
@@ -62,6 +111,12 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
     }
 
     fun copy (): Block {
+        return Block(id, number, selection)
+    }
+
+    fun copyToNextId (): Block {
+        val id = nextBlockId
+        nextBlockId++
         return Block(id, number, selection)
     }
 

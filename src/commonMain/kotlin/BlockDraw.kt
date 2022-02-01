@@ -1,5 +1,7 @@
 import com.soywiz.korge.view.*
 import io.github.aakira.napier.Napier
+import kotlin.math.max
+import kotlin.math.min
 
 
 fun Container.deleteBlock(block: Block?) {
@@ -12,7 +14,7 @@ fun Container.deleteBlock(block: Block?) {
 
 
 fun Container.drawBlock (block: Block, position: Position) {
-    Napier.v("drawBlock at Position(${position.x},${position.y}) with Number ${block.number.value}, IsSelected ${block.selection}")
+    Napier.v("drawBlock at ${position.log()} with Number ${block.number.value}, IsSelected ${block.selection}")
     blocksMap[position] = addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
     addBlock(block).position(getXFromPosition(position), getYFromPosition(position))
 }
@@ -24,11 +26,12 @@ fun Container.drawAllBlocks () {
         .forEach { (position, block) -> drawBlock(block, position) }
 }
 
-fun Container.updateBlock(block: Block, position: Position){
+fun Stage.updateBlock(block: Block, position: Position){
     val newBlock = block.copy()
     deleteBlock(block)
     blocksMap[position] = newBlock
     drawBlock(newBlock, position)
+    animateSelectedBlock(newBlock, newBlock.isGenerallySelected())
 }
 
 fun Container.atLeastThreeSelected(): Boolean {
@@ -37,6 +40,7 @@ fun Container.atLeastThreeSelected(): Boolean {
 
 fun Stage.unsuccessfulShape() {
     Napier.d("Shape was unsuccessful ")
+    removeSelection()
     hoveredPositions
         .forEach { position ->
             blocksMap[position] = blocksMap[position]?.unselect()!!
@@ -47,6 +51,7 @@ fun Stage.unsuccessfulShape() {
 }
 
 fun Stage.successfulShape() {
+    if (hoveredPositions.size >= rocketPowerUpLength) tryAddRockets(1)
     val pattern = determinePattern(hoveredPositions.toMutableList())
     val scoredPoints = determineScore(hoveredPositions.toMutableList())
     Napier.d("Hovered position size ${hoveredPositions.size}")
@@ -59,21 +64,17 @@ fun Stage.successfulShape() {
 
 fun tryAddBombs(numberOfBombs: Int){
     Napier.d("Trying to add $numberOfBombs bombs")
-    when (numberOfBombs){
-        1 -> when (true){
-            !bomb1Loaded.value -> bomb1Loaded.update(true)
-            !bomb2Loaded.value -> bomb2Loaded.update(true)
-            else -> Napier.d("Tried to add bomb when already full")
-        }
-        in 2..18 ->{
-            if (bomb1Loaded.value) bomb1Loaded.update(true)
-            if (bomb2Loaded.value) bomb2Loaded.update(true)
-        }
-        else -> Napier.e("Tried to add an unexpected number of bombs: $numberOfBombs")
-    }
+    val newBombCount = min(bombsLoadedCount.value + numberOfBombs, maxBombCount)
+    bombsLoadedCount.update(newBombCount)
 }
 
-fun Container.drawBombHover (maybePosition: Position?) {
+fun removeBomb(){
+    Napier.d("Removing a bomb")
+    val newBombCount = max(bombsLoadedCount.value - 1, 0)
+    bombsLoadedCount.update(newBombCount)
+}
+
+fun Stage.drawBombHover (maybePosition: Position?) {
     if (maybePosition != null) {
         hoveredBombPositions = tryAllSurroundingPositions(maybePosition).toMutableList()
         hoveredBombPositions.add(maybePosition)
@@ -88,7 +89,8 @@ fun Container.drawBombHover (maybePosition: Position?) {
         Napier.e("drawBombHover tried to draw a main block that is null")
     }
 }
-fun Container.removeBombHover () {
+
+fun Stage.removeBombHover () {
     hoveredBombPositions.forEach { pos ->
         if (blocksMap[pos] != null) {
             updateBlock(blocksMap[pos]!!.unselect(), pos)
@@ -97,4 +99,70 @@ fun Container.removeBombHover () {
         }
     }
     hoveredBombPositions.clear()
+}
+
+fun tryAddRockets(numberOfRockets: Int){
+    Napier.d("Trying to add $numberOfRockets rockets")
+    val newRocketCount = min(rocketsLoadedCount.value + numberOfRockets, maxRocketCount)
+    rocketsLoadedCount.update(newRocketCount)
+}
+
+fun removeRocket(){
+    Napier.d("Removing a rocket")
+    val newRocketCount = max(rocketsLoadedCount.value - 1, 0)
+    rocketsLoadedCount.update(newRocketCount)
+}
+
+fun Stage.drawRocketSelection (maybePosition: Position?) {
+    when {
+        (maybePosition == null) -> Napier.e("drawRocketSelection tried to draw a main block that is null")
+        (!rocketSelection.selected) -> Napier.e("drawRocketSelection tried to draw  when rocket is unselected")
+        (rocketSelection.firstPosition == null) -> {
+            rocketSelection.selectFirst(maybePosition)
+            updateBlock(blocksMap[maybePosition]!!.selectRocket(), maybePosition)
+        }
+        (rocketSelection.firstPosition == maybePosition) -> {
+            rocketSelection.unselectFirst()
+            updateBlock(blocksMap[maybePosition]!!.unselect(), maybePosition)
+        }
+        (rocketSelection.secondPosition == null) -> {
+            rocketSelection.selectSecond(maybePosition)
+            animateRocket(rocketSelection.copy())
+            removeRocket()
+            rocketSelection.unselect()
+            animatePowerUpSelection(rocketContainer, false)
+        }
+        else ->
+        {
+
+        }
+    }
+}
+
+fun Stage.removeRocketSelection () {
+    if (rocketSelection.firstPosition != null && blocksMap[rocketSelection.firstPosition] != null) {
+        updateBlock(
+            blocksMap[rocketSelection.firstPosition]!!.unselect(),
+            rocketSelection.firstPosition!!
+        )
+    }else {
+        Napier.d("No first rocket position to remove")
+    }
+    if (rocketSelection.secondPosition != null && blocksMap[rocketSelection.secondPosition] != null) {
+        updateBlock(
+            blocksMap[rocketSelection.secondPosition]!!.unselect(),
+            rocketSelection.secondPosition!!
+        )
+    }else {
+        Napier.d("No second rocket position to remove")
+    }
+    rocketSelection.unselect()
+}
+
+fun Stage.removeSelection() {
+    hoveredPositions.map { position -> animateSelectedBlock(blocksMap[position], false)}
+}
+
+fun Stage.selectBlocks() {
+    hoveredPositions.map { position -> animateSelectedBlock(blocksMap[position], true)}
 }

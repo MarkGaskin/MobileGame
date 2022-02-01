@@ -1,4 +1,3 @@
-import com.soywiz.korge.view.Container
 import com.soywiz.korge.view.Stage
 import com.soywiz.korma.geom.Point
 import io.github.aakira.napier.Napier
@@ -49,27 +48,29 @@ fun getPositionFromPoint (point: Point): Position? {
     }
 }
 
-fun Container.handleDown(point: Point){
-    when (true) {
+fun Stage.handleDown(point: Point){
+    when {
         isAnimating -> return
         showingRestart -> return
-        bomb1Selected,
-        bomb2Selected -> {
+        bombSelected -> {
             isPressed = true
             drawBombHover(getPositionFromPoint(point)) }
+        rocketSelection.selected -> {
+            isPressed = true
+            drawRocketSelection(getPositionFromPoint(point)) }
         else -> {
             isPressed = true
             return pressDown(getPositionFromPoint(point)) }
     }
 }
 
-fun Container.handleHover(point: Point){
+fun Stage.handleHover(point: Point){
     if (isPressed) {
-        when (true) {
-            isAnimating -> return
-            showingRestart -> return
-            bomb1Selected,
-            bomb2Selected ->{
+        when {
+            isAnimating ||
+            showingRestart ||
+            rocketSelection.selected -> return
+            bombSelected ->{
                 removeBombHover()
                 drawBombHover(getPositionFromPoint(point))
             }
@@ -80,11 +81,11 @@ fun Container.handleHover(point: Point){
 
 fun Stage.handleUp(point: Point){
     isPressed = false
-    when (true) {
-        isAnimating -> return
+    when {
+        isAnimating ||
+        rocketSelection.selected ||
         showingRestart -> return
-        bomb1Selected,
-        bomb2Selected ->{
+        bombSelected ->{
             val maybePosition = getPositionFromPoint(point)
             if (maybePosition == null)
             {
@@ -93,19 +94,9 @@ fun Stage.handleUp(point: Point){
             else
             {
                 animateBomb()
-                when (true) {
-                    bomb1Selected -> {
-                        bomb1Loaded.update(false)
-                        bomb1Selected = false
-                        animateBombSelection(bomb1container, bomb1Selected)
-                    }
-                    bomb2Selected -> {
-                        bomb2Loaded.update(false)
-                        bomb2Selected = false
-                        animateBombSelection(bomb2container, bomb2Selected)
-                    }
-                    else -> Napier.e("Animated bomb with no bomb selected")
-                }
+                removeBomb()
+                bombSelected = false
+                animatePowerUpSelection(bombContainer, false)
             }
 
         }
@@ -122,7 +113,7 @@ fun Stage.handleUp(point: Point){
     }
 }
 
-fun Container.pressDown (maybePosition: Position?) {
+fun Stage.pressDown (maybePosition: Position?) {
     if (maybePosition != null)
     {
         if (blocksMap[maybePosition] != null)
@@ -130,6 +121,7 @@ fun Container.pressDown (maybePosition: Position?) {
             Napier.v("Selecting Block at Position(${maybePosition.x},${maybePosition.y})")
             hoveredPositions.add(maybePosition)
             updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
+            selectBlocks()
         }
         else
         {
@@ -144,7 +136,7 @@ fun Container.pressDown (maybePosition: Position?) {
 
 
 
-fun Container.hoverBlock (maybePosition: Position?) {
+fun Stage.hoverBlock (maybePosition: Position?) {
     if (maybePosition != null && (hoveredPositions.size > 0 && hoveredPositions.last() != maybePosition)) {
         if (blocksMap[maybePosition] == null) {
             Napier.w("Null block found at Position(${maybePosition.x},${maybePosition.y})")
@@ -154,32 +146,75 @@ fun Container.hoverBlock (maybePosition: Position?) {
             )
         ) {
             Napier.d("Block transition is invalid")
+        } else if (hoveredPositions.contains(maybePosition) && hoveredPositions.elementAtOrNull(hoveredPositions.size - 2) != maybePosition) {
+            Napier.d("Block is already selected)")
         } else if (hoveredPositions.size > 0 && blocksMap[hoveredPositions.last()]?.number != blocksMap[maybePosition]?.number) {
             Napier.d("Hovered a square of a different value")
-        } else if (hoveredPositions.elementAtOrNull(hoveredPositions.size - 2) == maybePosition) {
-            Napier.d("Reverted previous hover")
-            updateBlock(
-                blocksMap[hoveredPositions[(hoveredPositions.size - 1)]]!!.unselect(),
-                hoveredPositions[(hoveredPositions.size - 1)]
-            )
-            hoveredPositions.removeAt(hoveredPositions.size - 1)
-        } else if (hoveredPositions.contains(maybePosition)) {
-            Napier.d("Block is already selected)")
         } else {
-            Napier.v("Hovering Block at Position(${maybePosition.x},${maybePosition.y} from Position(${hoveredPositions.last().x},${hoveredPositions.last().y})")
-            hoveredPositions.add(maybePosition)
-            updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
+            if (hoveredPositions.elementAtOrNull(hoveredPositions.size - 2) == maybePosition) {
+                Napier.d("Reverted previous hover")
+                updateBlock(
+                    blocksMap[hoveredPositions[(hoveredPositions.size - 1)]]!!.unselect(),
+                    hoveredPositions[(hoveredPositions.size - 1)]
+                )
+                val removedBlock = hoveredPositions.removeAt(hoveredPositions.size - 1)
+            } else {
+                Napier.v("Hovering Block at Position(${maybePosition.x},${maybePosition.y} from Position(${hoveredPositions.last().x},${hoveredPositions.last().y})")
+                hoveredPositions.add(maybePosition)
+                updateBlock(blocksMap[maybePosition]!!.select(), maybePosition)
+            }
+
+            checkForHoveredPattern(maybePosition!!)
         }
-        checkForHoveredPattern()
     }
 }
 
-fun Container.checkForHoveredPattern(){
-    if (determinePattern(hoveredPositions).isPowerUp()){
-        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.selectPattern(), position) }
+
+var hoveredSelection: BlockSelection = BlockSelection.SMALL
+
+fun Stage.checkForHoveredPattern(position: Position){
+    val isPowerUp = determinePattern(hoveredPositions).isPowerUp()
+    if (isPowerUp && hoveredSelection != BlockSelection.PATTERN){
+        hoveredSelection = BlockSelection.PATTERN
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectPattern(), position2) }
+    }
+    else if (isPowerUp){
+        updateBlock(blocksMap[position]!!.selectPattern(), position)
+    }
+    else if (hoveredPositions.size >= largeSelectionSize && hoveredSelection != BlockSelection.EXTRALARGE)
+    {
+        hoveredSelection = BlockSelection.EXTRALARGE
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectExtraLarge(), position2) }
+    }
+    else if (hoveredPositions.size >= largeSelectionSize)
+    {
+        updateBlock(blocksMap[position]!!.selectExtraLarge(), position)
+    }
+    else if (hoveredPositions.size >= rocketPowerUpLength && hoveredSelection != BlockSelection.LARGE)
+    {
+        hoveredSelection = BlockSelection.LARGE
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectLarge(), position2) }
+    }
+    else if (hoveredPositions.size >= rocketPowerUpLength)
+    {
+        updateBlock(blocksMap[position]!!.selectLarge(), position)
+    }
+    else if (hoveredPositions.size >= mediumSelectionSize && hoveredSelection != BlockSelection.MEDIUM)
+    {
+        hoveredSelection = BlockSelection.MEDIUM
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectMedium(), position2) }
+    }
+    else if (hoveredPositions.size >= mediumSelectionSize)
+    {
+        updateBlock(blocksMap[position]!!.selectMedium(), position)
+    }
+    else if (hoveredSelection != BlockSelection.SMALL)
+    {
+        hoveredSelection = BlockSelection.SMALL
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.select(), position2) }
     }
     else
     {
-        hoveredPositions.forEach{ position -> updateBlock(blocksMap[position]!!.select(), position) }
+        updateBlock(blocksMap[position]!!.select(), position)
     }
 }
