@@ -170,7 +170,7 @@ fun Stage.hoverBlock (maybePosition: Position?) {
 }
 
 
-var hoveredSelection: BlockSelection = BlockSelection.NORMAL
+var hoveredSelection: BlockSelection = BlockSelection.SMALL
 
 fun Stage.checkForHoveredPattern(position: Position){
     val isPowerUp = determinePattern(hoveredPositions).isPowerUp()
@@ -181,6 +181,15 @@ fun Stage.checkForHoveredPattern(position: Position){
     else if (isPowerUp){
         updateBlock(blocksMap[position]!!.selectPattern(), position)
     }
+    else if (hoveredPositions.size >= largeSelectionSize && hoveredSelection != BlockSelection.EXTRALARGE)
+    {
+        hoveredSelection = BlockSelection.EXTRALARGE
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectExtraLarge(), position2) }
+    }
+    else if (hoveredPositions.size >= largeSelectionSize)
+    {
+        updateBlock(blocksMap[position]!!.selectExtraLarge(), position)
+    }
     else if (hoveredPositions.size >= rocketPowerUpLength && hoveredSelection != BlockSelection.LARGE)
     {
         hoveredSelection = BlockSelection.LARGE
@@ -190,9 +199,18 @@ fun Stage.checkForHoveredPattern(position: Position){
     {
         updateBlock(blocksMap[position]!!.selectLarge(), position)
     }
-    else if (hoveredSelection != BlockSelection.NORMAL)
+    else if (hoveredPositions.size >= mediumSelectionSize && hoveredSelection != BlockSelection.MEDIUM)
     {
-        hoveredSelection = BlockSelection.NORMAL
+        hoveredSelection = BlockSelection.MEDIUM
+        hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.selectMedium(), position2) }
+    }
+    else if (hoveredPositions.size >= mediumSelectionSize)
+    {
+        updateBlock(blocksMap[position]!!.selectMedium(), position)
+    }
+    else if (hoveredSelection != BlockSelection.SMALL)
+    {
+        hoveredSelection = BlockSelection.SMALL
         hoveredPositions.forEach{ position2 -> updateBlock(blocksMap[position2]!!.select(), position2) }
     }
     else

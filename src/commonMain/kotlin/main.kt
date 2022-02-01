@@ -83,6 +83,10 @@ var blockScaleSelected = 0.0
 
 var gameField = RoundRect(0.0,0.0,0.0)
 
+const val smallSelectionSize = 3
+const val mediumSelectionSize = 6
+const val largeSelectionSize = 18
+
 
 
 
@@ -574,6 +578,6 @@ fun Container.restart() {
 	rocketsLoadedCount.update(startingRocketCount)
 	blocksMap.values.forEach { it.removeFromParent() }
 	blocksMap.clear()
-	blocksMap = initializeOnesBlocksMap ()
+	blocksMap = initializeRandomBlocksMap ()
 	drawAllBlocks()
 }

@@ -167,8 +167,8 @@ fun determineMerge(positionList: MutableList<Position>) : MutableMap<Position, P
 
     var nextNumber =
         when (positionList.size) {
-            in 0..5 -> blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
-            in 6..18 -> blocksMap[positionList.first()]?.number?.next()?.next() ?: Number.ZERO
+            in 0 .. mediumSelectionSize - 1 -> blocksMap[positionList.first()]?.number?.next() ?: Number.ZERO
+            in mediumSelectionSize .. largeSelectionSize -1 -> blocksMap[positionList.first()]?.number?.next()?.next() ?: Number.ZERO
             else -> blocksMap[positionList.first()]?.number?.next()?.next()?.next() ?: Number.ZERO
         }
     when (pattern) {
