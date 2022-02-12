@@ -27,6 +27,8 @@ korge {
 	name = "tr.io"
 	admob("ca-app-pub-2040551467408424~4460713550")
 	orientation=Orientation.PORTRAIT
+	androidPermission("android.permission.INTERNET")
+	androidPermission("android.permission.BLUETOOTH")
 // To enable all targets at once
 
 	//targetAll()

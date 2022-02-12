@@ -95,7 +95,13 @@ const val largeSelectionSize = 18
 suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
 	Napier.base(DebugAntilog())
 
-	var admob = AdmobCreate(this.views,testing = true)
+
+
+//	if (admob.available()){
+//		Napier.d("Admob available")
+//	} else {
+//		Napier.w("Admob unavailable")
+//	}
 
 	val backgroundImg = resourcesVfs["background.png"].readBitmap()
 
@@ -456,7 +462,15 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 	blockScaleNormal = blocksMap[Position(0,0)]!!.scale
 	blockScaleSelected = blockScaleNormal * 1.2
 
-	var bannerConfig = Admob.Config(id="ca-app-pub-3940256099942544/6300978111")
+	val admob = AdmobCreate(this.views, testing = false)
+
+//	if (admob.available()){
+//		Napier.d("Admob available")
+//	} else {
+//		Napier.w("Admob unavailable")
+//	}
+//
+//	var bannerConfig = Admob.Config(id="ca-app-pub-3940256099942544/6300978111")
 
 //	admob.bannerPrepare(bannerConfig)
 //	admob.bannerShow()
