@@ -50,15 +50,19 @@ fun getPositionFromPoint (point: Point): Position? {
 
 fun Stage.handleDown(point: Point){
     when {
-        isAnimating -> return
-        showingRestart -> return
+        isAnimating ||
+        showingRestart ||
+        showingTutorial -> return
         bombSelected -> {
+            Napier.d("handleDown -> bombSelected")
             isPressed = true
             drawBombHover(getPositionFromPoint(point)) }
         rocketSelection.selected -> {
+            Napier.d("handleDown -> rocketSelected")
             isPressed = true
             drawRocketSelection(getPositionFromPoint(point)) }
         else -> {
+            Napier.d("handleDown -> normalSelected")
             isPressed = true
             return pressDown(getPositionFromPoint(point)) }
     }
@@ -69,6 +73,7 @@ fun Stage.handleHover(point: Point){
         when {
             isAnimating ||
             showingRestart ||
+            showingTutorial ||
             rocketSelection.selected -> return
             bombSelected ->{
                 removeBombHover()
@@ -80,11 +85,12 @@ fun Stage.handleHover(point: Point){
 }
 
 fun Stage.handleUp(point: Point){
-    isPressed = false
     when {
         isAnimating ||
         rocketSelection.selected ||
-        showingRestart -> return
+        showingRestart ||
+        showingTutorial ||
+        !isPressed -> return
         bombSelected ->{
             val maybePosition = getPositionFromPoint(point)
             if (maybePosition == null)
@@ -111,6 +117,7 @@ fun Stage.handleUp(point: Point){
             }
         }
     }
+    isPressed = false
 }
 
 fun Stage.pressDown (maybePosition: Position?) {

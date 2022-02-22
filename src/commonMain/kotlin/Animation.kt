@@ -93,6 +93,7 @@ fun Stage.animateMerge(mergeMap: MutableMap<Position, Pair<Number, List<Position
                 Napier.d("Game Over!")
                 showGameOver { restart() }
             }
+            if (tutorialsComplete.isIncomplete(TutorialType.PATTERN)) showTutorial(TutorialType.PATTERN)
         }
     }
 }

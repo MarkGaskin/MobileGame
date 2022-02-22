@@ -61,6 +61,7 @@ const val startingBombCount = 1
 const val maxBombCount = 5
 var bombsLoadedCount = ObservableProperty(startingBombCount)
 var bombSelected = false
+var bombHovered = false
 var bombContainer: Container = Container()
 
 const val startingRocketCount = 1
@@ -87,7 +88,9 @@ const val smallSelectionSize = 3
 const val mediumSelectionSize = 6
 const val largeSelectionSize = 18
 
-
+var tutorialsComplete: TutorialsComplete = TutorialsComplete()
+var showingTutorial: Boolean = false
+val tutorialProperty = ObservableProperty("")
 
 
 suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
@@ -105,6 +108,16 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 
 	val storage = views.storage
 	best.update(storage.getOrNull("best")?.toInt() ?: 0)
+
+	tutorialsComplete.fromString (storage.getOrNull("Tutorial") ?: "")
+
+	tutorialsComplete = TutorialsComplete()  // DEBUG CODE THAT ALWAYS MARKS TUTORIALS AS INCOMPLETE TO SHOW THEM
+
+	tutorialProperty.observe {
+		// new code line here
+		storage["Tutorial"] = tutorialsComplete.toString()
+	}
+
 
 	score.observe {
 		if (it > best.value) best.update(it)
@@ -158,7 +171,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		alignLeftToLeftOf(gameField, cellSize*0.5)
 		alignBottomToTopOf(gameField, cellSize * 0.75)
 		onClick {
-			if(!showingRestart) {
+			if(showingTutorial){ Napier.d("Restart Button Clicked during tutorial") }
+			else if(!showingRestart) {
 				unselectAllPowerUps()
 				restartPopupContainer = this@Korge.showRestart { this@Korge.restart() }
 				Napier.d("Restart Button Clicked")
@@ -180,7 +194,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		alignTopToTopOf(bgScore, 3.0)
 	}
 
-	text(score.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
+	text(score.value.toString(), if (score.value >= 20000) {cellSize * 0.8} else {cellSize * 1.0}, Colors.WHITE, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
 		centerXOn(bgScore)
@@ -198,7 +212,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgBest)
 		alignTopToTopOf(bgBest, 3.0)
 	}
-	text(best.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
+	text(best.value.toString(), if (score.value >= 20000) {cellSize * 0.8} else {cellSize * 1.0}, Colors.WHITE, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
 		alignment = TextAlignment.MIDDLE_CENTER
 		alignTopToTopOf(bgBest, 5.0 + (cellSize*0.5) + 5.0)
@@ -223,7 +237,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 			centerOn(bombBackground)
 		}
 		onClick {
-			if(bombsLoadedCount.value > 0 && !showingRestart) {
+			if(bombsLoadedCount.value > 0 && !showingRestart && !showingTutorial && !rocketSelection.selected) {
+				if (tutorialsComplete.isIncomplete(TutorialType.BOMB)) this.parent?.showTutorial(TutorialType.BOMB)
 				bombSelected = !bombSelected
 				animatePowerUpSelection(this, bombSelected)
 			}
@@ -335,7 +350,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 			centerOn(rocketBackground)
 		}
 		onClick {
-			if(rocketsLoadedCount.value > 0 && !showingRestart) {
+			if(rocketsLoadedCount.value > 0 && !showingRestart && !showingTutorial && !bombSelected) {
+				if (tutorialsComplete.isIncomplete(TutorialType.ROCKET)) this.parent?.showTutorial(TutorialType.ROCKET)
 				rocketSelection.toggleSelect()
 				animatePowerUpSelection(this, rocketSelection.selected)
 				if (!rocketSelection.selected) removeRocketSelection()
@@ -451,6 +467,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 	blockScaleNormal = blocksMap[Position(0,0)]!!.scale
 	blockScaleSelected = blockScaleNormal * 1.2
 
+	if (tutorialsComplete.isIncomplete(TutorialType.MERGE)) showTutorial(TutorialType.MERGE)
 
 	touch {
 		onUp { handleUp(mouseXY) }
