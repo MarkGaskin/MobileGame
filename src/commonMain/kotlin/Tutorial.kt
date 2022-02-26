@@ -17,7 +17,7 @@ enum class TutorialType(val index: Int,
     MERGE(0,
         """Combine sequences of
           |3 or more blocks and
-          |get a high score!""".trimMargin(), Colors["#bca8ff"], topIndent = 30.0),
+          |get a high score!""".trimMargin(), Colors["#bca8ff"], topIndent = 25.0),
     PATTERN(1, """|Special patterns are
                         |highlighted BLUE and
                         |result in BONUS blocks!""".trimMargin().trimIndent(), Colors["#99ddff"]),

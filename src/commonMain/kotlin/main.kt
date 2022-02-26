@@ -111,7 +111,7 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 
 	tutorialsComplete.fromString (storage.getOrNull("Tutorial") ?: "")
 
-	tutorialsComplete = TutorialsComplete()  // DEBUG CODE THAT ALWAYS MARKS TUTORIALS AS INCOMPLETE TO SHOW THEM
+	//tutorialsComplete = TutorialsComplete()  // DEBUG CODE THAT ALWAYS MARKS TUTORIALS AS INCOMPLETE TO SHOW THEM
 
 	tutorialProperty.observe {
 		// new code line here
@@ -193,6 +193,8 @@ suspend fun main() = Korge(width = 360, height = 640, title = "2048", bgcolor = 
 		centerXOn(bgScore)
 		alignTopToTopOf(bgScore, 3.0)
 	}
+
+	score.update(255555)
 
 	text(score.value.toString(), if (score.value >= 20000) {cellSize * 0.8} else {cellSize * 1.0}, Colors.WHITE, font) {
 		setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
