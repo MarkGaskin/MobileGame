@@ -182,7 +182,7 @@ suspend fun main() =
             }
 
         val bgScore =
-            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#9182c4"]) {
+            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#639cd9"]) {
                 alignLeftToRightOf(restartBlock, cellSize)
                 alignBottomToTopOf(gameField, cellSize * 0.5)
             }
@@ -202,7 +202,7 @@ suspend fun main() =
         }
 
         val bgBest =
-            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#9182c4"]) {
+            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#639cd9"]) {
                 alignRightToRightOf(gameField, 12.0)
                 alignBottomToTopOf(gameField, cellSize * 0.5)
             }
@@ -243,7 +243,7 @@ suspend fun main() =
                 bombsLoadedCount.observe {
                     this.removeChildrenIf { index, _ -> index == 1 }
                     image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg) {
-                        size(96, 96)
+                        size(76, 76)
                         centerOn(bombBackground)
                     }
                 }
@@ -343,7 +343,7 @@ suspend fun main() =
 
         rocketContainer =
             container {
-                val rocketBackground = roundRect(cellSize * 2.5, cellSize * 2.5, 10.0, fill = Colors["#e6e6e6A0"])
+                val rocketBackground = roundRect(cellSize * 2.5, cellSize * 2.5, 10.0, fill = Colors["#e6e6e640"])
                 val rocketWidth = 96
                 val rocketHeight = 96
                 alignTopToBottomOf(gameField, 18)
@@ -374,7 +374,7 @@ suspend fun main() =
             alignLeftToLeftOf(rocketContainer)
 
             val emptyFill = Colors["#e6e6e6A0"]
-            val loadedFill = Colors["#ca9dd7"]
+            val loadedFill = Colors["#F87855"]
 
             var cart1Fill = emptyFill
             var cart2Fill = emptyFill
@@ -469,6 +469,7 @@ suspend fun main() =
 
         blocksMap = initializeRandomBlocksMap()
         blocksMap = initializeFixedBlocksMap()
+        blocksMap = initializeOnesBlocksMap()
         drawAllBlocks()
 
         blockScaleNormal = blocksMap[Position(0, 0)]!!.scale
