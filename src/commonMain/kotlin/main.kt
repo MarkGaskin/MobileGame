@@ -18,6 +18,7 @@ import io.github.aakira.napier.DebugAntilog
 import io.github.aakira.napier.Napier
 import kotlin.properties.Delegates
 import kotlin.random.Random
+import gameFieldColor
 
 val score = ObservableProperty(0)
 val best = ObservableProperty(0)
@@ -94,7 +95,7 @@ suspend fun main() =
     Korge(width = 360, height = 640, title = "2048", bgcolor = RGBA(253, 247, 240)) {
         Napier.base(DebugAntilog())
 
-        val backgroundImg = resourcesVfs["background.png"].readBitmap()
+        val backgroundImg = resourcesVfs["background_triangles.png"].readBitmap()
 
         val background =
             container {
@@ -129,7 +130,7 @@ suspend fun main() =
         topIndent = 128
 
         gameField =
-            roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#e0d8e822"]) {
+            roundRect(fieldWidth, fieldHeight, 5, fill = gameFieldColor) {
                 position(leftIndent, topIndent)
 
                 touch {
@@ -140,7 +141,7 @@ suspend fun main() =
 
         graphics {
             position(leftIndent, topIndent)
-            fill(Colors["#cec0b250"]) {
+            fill(cellColor) {
                 for (i in 0 until gridColumns) {
                     for (j in 0 until gridRows) {
                         roundRect(
@@ -155,12 +156,12 @@ suspend fun main() =
             }
         }
 
-        val restartImg = resourcesVfs["restart.png"].readBitmap()
+        val restartImg = resourcesVfs["pause.png"].readBitmap()
 
         val btnSize = cellSize * 1.0
         val restartBlock =
             container {
-                val backgroundBlock = roundRect(btnSize, btnSize, 5.0, fill = Colors["#639cd9"])
+                val backgroundBlock = roundRect(btnSize, btnSize, 5.0, fill = restartAndScoreColor)
                 image(restartImg) {
                     size(btnSize * 0.8, btnSize * 0.8)
                     centerOn(backgroundBlock)
@@ -182,16 +183,16 @@ suspend fun main() =
             }
 
         val bgScore =
-            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#639cd9"]) {
+            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = restartAndScoreColor) {
                 alignLeftToRightOf(restartBlock, cellSize)
                 alignBottomToTopOf(gameField, cellSize * 0.5)
             }
-        text("SCORE", cellSize * 0.5, Colors["#fbf9fd"], font) {
+        text("SCORE", cellSize * 0.5, scoreTextColor, font) {
             centerXOn(bgScore)
             alignTopToTopOf(bgScore, 3.0)
         }
 
-        text(score.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
+        text(score.value.toString(), cellSize * 1.0, scoreTextColor, font) {
             setTextBounds(Rectangle(0.0, 0.0, bgScore.width, cellSize * 0.5))
             alignment = TextAlignment.MIDDLE_CENTER
             centerXOn(bgScore)
@@ -202,15 +203,15 @@ suspend fun main() =
         }
 
         val bgBest =
-            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = Colors["#639cd9"]) {
+            roundRect(cellSize * 2.5, cellSize * 1.5, 5.0, fill = restartAndScoreColor) {
                 alignRightToRightOf(gameField, 12.0)
                 alignBottomToTopOf(gameField, cellSize * 0.5)
             }
-        text("BEST", cellSize * 0.5, Colors["#fbf9fd"], font) {
+        text("BEST", cellSize * 0.5, scoreTextColor, font) {
             centerXOn(bgBest)
             alignTopToTopOf(bgBest, 3.0)
         }
-        text(best.value.toString(), cellSize * 1.0, Colors.WHITE, font) {
+        text(best.value.toString(), cellSize * 1.0, scoreTextColor, font) {
             setTextBounds(Rectangle(0.0, 0.0, bgBest.width, cellSize * 0.5))
             alignment = TextAlignment.MIDDLE_CENTER
             alignTopToTopOf(bgBest, 5.0 + (cellSize * 0.5) + 5.0)
@@ -227,7 +228,7 @@ suspend fun main() =
 
         bombContainer =
             container {
-                val bombBackground = roundRect(cellSize * 2.5, cellSize * 2.5, 10.0, fill = Colors["#e6e6e640"])
+                val bombBackground = roundRect(cellSize * 2.5, cellSize * 2.5, 10.0, fill = bombContainerColor)
                 alignTopToBottomOf(gameField, 18)
                 alignLeftToLeftOf(gameField, fieldWidth / 8)
                 image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg) {
@@ -254,8 +255,8 @@ suspend fun main() =
             alignRightToRightOf(bombContainer)
             alignLeftToLeftOf(bombContainer)
 
-            val emptyFill = Colors["#e6e6e6A0"]
-            val loadedFill = Colors["#e04b5a"]
+            val emptyFill = emptyCartridgeColor
+            val loadedFill = loadedBombCartridgeColor
 
             var cart1Fill = emptyFill
             var cart2Fill = emptyFill
@@ -343,7 +344,7 @@ suspend fun main() =
 
         rocketContainer =
             container {
-                val rocketBackground = roundRect(cellSize * 2.5, cellSize * 2.5, 10.0, fill = Colors["#e6e6e640"])
+                val rocketBackground = roundRect(cellSize * 2.5, cellSize * 2.5, 10.0, fill = bombContainerColor)
                 val rocketWidth = 96
                 val rocketHeight = 96
                 alignTopToBottomOf(gameField, 18)
@@ -373,8 +374,8 @@ suspend fun main() =
             alignRightToRightOf(rocketContainer)
             alignLeftToLeftOf(rocketContainer)
 
-            val emptyFill = Colors["#e6e6e6A0"]
-            val loadedFill = Colors["#F87855"]
+            val emptyFill = emptyCartridgeColor
+            val loadedFill = loadedRocketCartridgeColor
 
             var cart1Fill = emptyFill
             var cart2Fill = emptyFill
@@ -491,13 +492,13 @@ fun Container.showGameOver(onGameOver: () -> Unit) =
         }
 
         val restartBackground =
-            roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#aaa6a4cc"]) {
+            roundRect(fieldWidth, fieldHeight, 5, fill = grayedGameFieldColor) {
                 centerXOn(gameField)
                 centerYOn(gameField)
             }
         val bgRestartContainer =
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 2, 25, fill = Colors["#bbd0f2"]) {
+                roundRect(fieldWidth / 2, fieldHeight / 2, 25, fill = pauseScreenBlockColor) {
                     centerXOn(restartBackground)
                     (restartBackground)
                 }
@@ -565,7 +566,7 @@ fun Container.showRestart(onRestart: () -> Unit) =
         }
 
         val restartBackground =
-            roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#aaa6a4cc"]) {
+            roundRect(fieldWidth, fieldHeight, 5, fill = grayedGameFieldColor) {
                 centerXOn(gameField)
                 centerYOn(gameField)
                 onClick {
@@ -577,7 +578,7 @@ fun Container.showRestart(onRestart: () -> Unit) =
         
         val bgRestartContainer =
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#639cd9"]) {
+                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = pauseScreenBlockColor) {
                     centerXOn(restartBackground)
                     alignTopToTopOf(restartBackground, 60.0)
                 }
@@ -587,11 +588,11 @@ fun Container.showRestart(onRestart: () -> Unit) =
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
                     textSize = 30.0
-                    textColor = Colors["#FFFFFF"]
-                    onOver { textColor = RGBA(90, 90, 90) }
-                    onOut { textColor = Colors["#FFFFFF"] }
-                    onDown { textColor = RGBA(120, 120, 120) }
-                    onUp { textColor = RGBA(120, 120, 120) }
+                    textColor = pauseScreenTextColor
+                    onOver { textColor = pauseScreenTextHoverColor }
+                    onOut { textColor = pauseScreenTextColor }
+                    onDown { textColor = pauseScreenTextDownColor }
+                    onUp { textColor = pauseScreenTextDownColor }
                 }
                 onUp {
                     Napier.d("Restart Button - YES Clicked")
@@ -607,7 +608,7 @@ fun Container.showRestart(onRestart: () -> Unit) =
                 }
             }
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#639cd9"]) {
+                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = pauseScreenBlockColor) {
                     centerXOn(restartBackground)
                     alignBottomToBottomOf(restartBackground, 53.0 )
                 }
@@ -617,11 +618,11 @@ fun Container.showRestart(onRestart: () -> Unit) =
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
                     textSize = 30.0
-                    textColor = Colors["#FFFFFF"]
-                    onOver { textColor = RGBA(90, 90, 90) }
-                    onOut { textColor = Colors["#FFFFFF"] }
-                    onDown { textColor = RGBA(120, 120, 120) }
-                    onUp { textColor = RGBA(120, 120, 120) }
+                    textColor = pauseScreenTextColor
+                    onOver { textColor = pauseScreenTextHoverColor }
+                    onOut { textColor = pauseScreenTextColor }
+                    onDown { textColor = pauseScreenTextDownColor }
+                    onUp { textColor = pauseScreenTextDownColor }
                 }
                 onUp {
                     Napier.d("Share Button - YES Clicked")

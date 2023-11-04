@@ -12,16 +12,6 @@ fun Container.removeBlock(block: Block) {
     block.removeFromParent()
 }
 
-val patternBorderOptions: Array<RGBA> = arrayOf(
-    Colors["#F26419"],
-    Colors["#86BBD8"],
-    Colors["#33658A"],
-    Colors["#B20D30"],
-    Colors["#454372"],
-    Colors["#C69DD2"],
-    Colors["#F79F79"],
-    Colors["#FDE12D"],
-)
 
 enum class BlockSelection () {
     UNSELECTED, SMALL, MEDIUM, LARGE, EXTRALARGE, BOMB, ROCKET, PATTERN;
@@ -31,10 +21,10 @@ enum class BlockSelection () {
             UNSELECTED -> number.color
             SMALL -> number.next().color
             MEDIUM -> number.next().next().color
-            LARGE -> Colors["#F87855"]
+            LARGE -> loadedRocketCartridgeColor
             EXTRALARGE -> number.next().next().next().color
-            BOMB -> Colors["#990a00"]
-            ROCKET -> Colors["#F87855"]
+            BOMB -> loadedBombCartridgeColor
+            ROCKET -> loadedRocketCartridgeColor
             PATTERN -> patternBorderOptions[Random.nextInt(patternBorderOptions.size)]
         }
 
@@ -43,10 +33,10 @@ enum class BlockSelection () {
             UNSELECTED -> number.color
             SMALL -> number.next().color
             MEDIUM -> number.next().next().color
-            LARGE -> Colors["#F87855"]
+            LARGE -> loadedRocketCartridgeColor
             EXTRALARGE -> number.next().next().next().color
-            BOMB -> Colors["#990a00"]
-            ROCKET -> Colors["#F87855"]
+            BOMB -> loadedBombCartridgeColor
+            ROCKET -> loadedRocketCartridgeColor
             PATTERN -> patternBorderOptions[Random.nextInt(patternBorderOptions.size)]
         }
 }
