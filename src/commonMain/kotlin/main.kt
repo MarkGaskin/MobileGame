@@ -578,13 +578,13 @@ fun Container.showRestart(onRestart: () -> Unit) =
         
         val bgRestartContainer =
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = pauseScreenBlockColor) {
+                val textContainer = roundRect(fieldWidth * 2 / 3, fieldHeight * 1 / 5, 25, fill = pauseScreenBlockColor) {
                     centerXOn(restartBackground)
-                    alignTopToTopOf(restartBackground, 60.0)
+                    alignTopToTopOf(restartBackground, fieldHeight * 0.32)
                 }
-                uiText("Restartu") {
+                uiText("RESTART") {
                     centerXOn(restartBackground)
-                    alignTopToTopOf(restartBackground, 90.0)
+                    alignTopToTopOf(textContainer, fieldHeight * 0.07)
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
                     textSize = 30.0
@@ -612,7 +612,7 @@ fun Container.showRestart(onRestart: () -> Unit) =
                     centerXOn(restartBackground)
                     alignBottomToBottomOf(restartBackground, 53.0 )
                 }
-                uiText("Share") {
+                uiText("SHARE") {
                     centerXOn(restartBackground)
                     alignBottomToBottomOf(restartBackground, 90.0)
 
