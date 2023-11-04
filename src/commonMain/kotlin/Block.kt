@@ -45,11 +45,7 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
         roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.colorBorder(number), strokeThickness = 3.5)
         roundRect(cellSize, cellSize, 5, fill = selection.colorContent(number).withA(80),  )
 
-        val textColor = when (number) {
-            ZERO, ONE, TWO, FOUR -> Colors.BLACK
-            else -> Colors.WHITE
-        }
-        text(number.display, textSizeFor(number), textColor, font).apply {
+        text(number.display, textSizeFor(number), number.TextColor, font).apply {
             when (number.ordinal) {
                 0 -> centerBetween(0.0, 0.0, cellSize*1.0-4, cellSize*1.0)
                 else -> centerBetween(0.0, 0.0, cellSize*1.0, cellSize*1.0)
