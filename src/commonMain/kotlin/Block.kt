@@ -3,7 +3,7 @@ import com.soywiz.klogger.AnsiEscape
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import io.github.aakira.napier.Napier
-import java.util.Random
+import kotlin.random.Random
 
 
 fun Container.addBlock(block: Block) = block.addTo(this)
@@ -35,7 +35,7 @@ enum class BlockSelection () {
             EXTRALARGE -> number.next().next().next().color
             BOMB -> Colors["#990a00"]
             ROCKET -> Colors["#F87855"]
-            PATTERN -> patternBorderOptions[Random().nextInt(patternBorderOptions.size)]
+            PATTERN -> patternBorderOptions[Random.nextInt(patternBorderOptions.size)]
         }
 
     fun colorBorder (number: Number) =
@@ -47,7 +47,7 @@ enum class BlockSelection () {
             EXTRALARGE -> number.next().next().next().color
             BOMB -> Colors["#990a00"]
             ROCKET -> Colors["#F87855"]
-            PATTERN -> patternBorderOptions[Random().nextInt(patternBorderOptions.size)]
+            PATTERN -> patternBorderOptions[Random.nextInt(patternBorderOptions.size)]
         }
 }
 

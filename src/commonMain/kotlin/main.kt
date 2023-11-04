@@ -186,7 +186,7 @@ suspend fun main() =
                 alignLeftToRightOf(restartBlock, cellSize)
                 alignBottomToTopOf(gameField, cellSize * 0.5)
             }
-        text("SCORE", cellSize * 0.5, Colors["#ebd9dd"], font) {
+        text("SCORE", cellSize * 0.5, Colors["#fbf9fd"], font) {
             centerXOn(bgScore)
             alignTopToTopOf(bgScore, 3.0)
         }
@@ -206,7 +206,7 @@ suspend fun main() =
                 alignRightToRightOf(gameField, 12.0)
                 alignBottomToTopOf(gameField, cellSize * 0.5)
             }
-        text("BEST", cellSize * 0.5, Colors["#ebd9dd"], font) {
+        text("BEST", cellSize * 0.5, Colors["#fbf9fd"], font) {
             centerXOn(bgBest)
             alignTopToTopOf(bgBest, 3.0)
         }
@@ -469,7 +469,7 @@ suspend fun main() =
 
         blocksMap = initializeRandomBlocksMap()
         blocksMap = initializeFixedBlocksMap()
-        blocksMap = initializeOnesBlocksMap()
+        //blocksMap = initializeOnesBlocksMap()
         drawAllBlocks()
 
         blockScaleNormal = blocksMap[Position(0, 0)]!!.scale
@@ -497,13 +497,13 @@ fun Container.showGameOver(onGameOver: () -> Unit) =
             }
         val bgRestartContainer =
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#bbd0f2"]) {
+                roundRect(fieldWidth / 2, fieldHeight / 2, 25, fill = Colors["#bbd0f2"]) {
                     centerXOn(restartBackground)
-                    centerYOn(restartBackground)
+                    (restartBackground)
                 }
-                uiText("Restart?") {
+                uiText("Restarto") {
                     centerXOn(restartBackground)
-                    centerYOn(restartBackground)
+                    alignTopToTopOf(restartBackground, 20.0)
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
                     textSize = 30.0
@@ -533,7 +533,7 @@ fun Container.showGameOver(onGameOver: () -> Unit) =
                 text("Out of moves") {
                     alignment = TextAlignment.MIDDLE_CENTER
                     textSize = 50.0
-                    color = RGBA(0, 0, 0)
+                    color = RGBA(255, 100, 90)
                 }
             }
     }
@@ -560,6 +560,10 @@ fun Container.showRestart(onRestart: () -> Unit) =
             onRestart()
         }
 
+        fun copyBlocksToClipboard() {
+            
+        }
+
         val restartBackground =
             roundRect(fieldWidth, fieldHeight, 5, fill = Colors["#aaa6a4cc"]) {
                 centerXOn(gameField)
@@ -570,21 +574,22 @@ fun Container.showRestart(onRestart: () -> Unit) =
                     this@container.removeFromParent()
                 }
             }
+        
         val bgRestartContainer =
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#bbd0f2"]) {
+                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#639cd9"]) {
                     centerXOn(restartBackground)
-                    centerYOn(restartBackground)
+                    alignTopToTopOf(restartBackground, 60.0)
                 }
-                uiText("Restart?") {
+                uiText("Restartu") {
                     centerXOn(restartBackground)
-                    centerYOn(restartBackground)
+                    alignTopToTopOf(restartBackground, 90.0)
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
                     textSize = 30.0
-                    textColor = RGBA(0, 0, 0)
+                    textColor = Colors["#FFFFFF"]
                     onOver { textColor = RGBA(90, 90, 90) }
-                    onOut { textColor = RGBA(0, 0, 0) }
+                    onOut { textColor = Colors["#FFFFFF"] }
                     onDown { textColor = RGBA(120, 120, 120) }
                     onUp { textColor = RGBA(120, 120, 120) }
                 }
@@ -599,6 +604,32 @@ fun Container.showRestart(onRestart: () -> Unit) =
                     showingRestart = false
                     restart()
                     this@container.removeFromParent()
+                }
+            }
+            container {
+                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = Colors["#639cd9"]) {
+                    centerXOn(restartBackground)
+                    alignBottomToBottomOf(restartBackground, 53.0 )
+                }
+                uiText("Share") {
+                    centerXOn(restartBackground)
+                    alignBottomToBottomOf(restartBackground, 90.0)
+
+                    textAlignment = TextAlignment.MIDDLE_CENTER
+                    textSize = 30.0
+                    textColor = Colors["#FFFFFF"]
+                    onOver { textColor = RGBA(90, 90, 90) }
+                    onOut { textColor = Colors["#FFFFFF"] }
+                    onDown { textColor = RGBA(120, 120, 120) }
+                    onUp { textColor = RGBA(120, 120, 120) }
+                }
+                onUp {
+                    Napier.d("Share Button - YES Clicked")
+                    copyBlocksToClipboard()
+                }
+                onClick {
+                    Napier.d("Share Button - YES Clicked")
+                    copyBlocksToClipboard()
                 }
             }
     }
