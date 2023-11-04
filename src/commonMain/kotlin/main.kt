@@ -231,7 +231,7 @@ suspend fun main() =
                 alignTopToBottomOf(gameField, 18)
                 alignLeftToLeftOf(gameField, fieldWidth / 8)
                 image(if (bombsLoadedCount.value > 0) loadedBombImg else emptyBombImg) {
-                    size(96, 96)
+                    size(80, 80)
                     centerOn(bombBackground)
                 }
                 onClick {
@@ -468,6 +468,7 @@ suspend fun main() =
         Napier.d("UI Initialized")
 
         blocksMap = initializeRandomBlocksMap()
+        blocksMap = initializeFixedBlocksMap()
         drawAllBlocks()
 
         blockScaleNormal = blocksMap[Position(0, 0)]!!.scale
