@@ -8,6 +8,7 @@ import com.soywiz.korge.ui.uiText
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import com.soywiz.korim.font.*
+import com.soywiz.korim.bitmap.*
 import com.soywiz.korim.format.*
 import com.soywiz.korim.text.TextAlignment
 import com.soywiz.korio.async.ObservableProperty
@@ -116,6 +117,7 @@ suspend fun main() =
             // new code line here
             storage["best"] = it.toString()
         }
+        
 
         font = resourcesVfs["clear_sans.fnt"].readBitmapFont()
 
@@ -156,13 +158,15 @@ suspend fun main() =
             }
         }
 
-        val restartImg = resourcesVfs["pause.png"].readBitmap()
+        val pauseImg = resourcesVfs["pause.png"].readBitmap()
+        val restartImg = resourcesVfs["restart.png"].readBitmap()
+        val shareImg = resourcesVfs["share.png"].readBitmap()
 
         val btnSize = cellSize * 1.0
         val restartBlock =
             container {
                 val backgroundBlock = roundRect(btnSize, btnSize, 5.0, fill = restartAndScoreColor)
-                image(restartImg) {
+                image(pauseImg) {
                     size(btnSize * 0.8, btnSize * 0.8)
                     centerOn(backgroundBlock)
                 }
@@ -171,7 +175,7 @@ suspend fun main() =
                 onClick {
                     if (!showingRestart) {
                         unselectAllPowerUps()
-                        restartPopupContainer = this@Korge.showRestart { this@Korge.restart() }
+                        restartPopupContainer = this@Korge.showRestart({this@Korge.restart()}, restartImg, shareImg)
                         Napier.d("Restart Button Clicked")
                     } else
                         {
@@ -479,7 +483,19 @@ suspend fun main() =
         touch {
             onUp { handleUp(mouseXY) }
         }
+}
+
+fun Stage.unselectAllPowerUps() {
+    if (bombSelected) {
+        bombSelected = false
+        animatePowerUpSelection(bombContainer, false)
     }
+    if (rocketSelection.selected)
+        {
+            rocketSelection.unselect()
+            animatePowerUpSelection(rocketContainer, false)
+        }
+}
 
 fun Container.showGameOver(onGameOver: () -> Unit) =
     container {
@@ -539,19 +555,9 @@ fun Container.showGameOver(onGameOver: () -> Unit) =
             }
     }
 
-fun Stage.unselectAllPowerUps() {
-    if (bombSelected) {
-        bombSelected = false
-        animatePowerUpSelection(bombContainer, false)
-    }
-    if (rocketSelection.selected)
-        {
-            rocketSelection.unselect()
-            animatePowerUpSelection(rocketContainer, false)
-        }
-}
 
-fun Container.showRestart(onRestart: () -> Unit) =
+
+fun Container.showRestart(onRestart: () -> Unit, restartBitmap: Bitmap, shareBitmap: Bitmap) =
     container {
         showingRestart = true
         Napier.d("Showing Restart Container...")
@@ -583,16 +589,21 @@ fun Container.showRestart(onRestart: () -> Unit) =
                     alignTopToTopOf(restartBackground, fieldHeight * 0.32)
                 }
                 uiText("RESTART") {
-                    centerXOn(restartBackground)
+                    alignLeftToLeftOf(textContainer, 15.0)
                     alignTopToTopOf(textContainer, fieldHeight * 0.07)
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
-                    textSize = 30.0
+                    textSize = 27.0
                     textColor = pauseScreenTextColor
                     onOver { textColor = pauseScreenTextHoverColor }
                     onOut { textColor = pauseScreenTextColor }
                     onDown { textColor = pauseScreenTextDownColor }
                     onUp { textColor = pauseScreenTextDownColor }
+                }
+                image(restartBitmap) {
+                    size(fieldWidth * 0.13, fieldWidth * 0.13)
+                    centerYOn(textContainer)
+                    alignRightToRightOf(textContainer, 15.0)
                 }
                 onUp {
                     Napier.d("Restart Button - YES Clicked")
@@ -608,21 +619,26 @@ fun Container.showRestart(onRestart: () -> Unit) =
                 }
             }
             container {
-                roundRect(fieldWidth / 2, fieldHeight / 4, 25, fill = pauseScreenBlockColor) {
+                val textContainer = roundRect(fieldWidth * 2 / 3, fieldHeight * 1 / 5, 25, fill = pauseScreenBlockColor) {
                     centerXOn(restartBackground)
-                    alignBottomToBottomOf(restartBackground, 53.0 )
+                    alignBottomToBottomOf(restartBackground, fieldHeight * 0.15)
                 }
                 uiText("SHARE") {
-                    centerXOn(restartBackground)
-                    alignBottomToBottomOf(restartBackground, 90.0)
+                    alignLeftToLeftOf(textContainer, 15.0)
+                    alignTopToTopOf(textContainer, fieldHeight * 0.07)
 
                     textAlignment = TextAlignment.MIDDLE_CENTER
-                    textSize = 30.0
+                    textSize = 27.0
                     textColor = pauseScreenTextColor
                     onOver { textColor = pauseScreenTextHoverColor }
                     onOut { textColor = pauseScreenTextColor }
                     onDown { textColor = pauseScreenTextDownColor }
                     onUp { textColor = pauseScreenTextDownColor }
+                }
+                image(shareBitmap){
+                    size(fieldWidth * 0.13, fieldWidth * 0.13)
+                    centerYOn(textContainer)
+                    alignRightToRightOf(textContainer, 15.0)
                 }
                 onUp {
                     Napier.d("Share Button - YES Clicked")

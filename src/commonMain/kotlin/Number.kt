@@ -44,7 +44,7 @@ enum class Number(
     ONE("Yellow", 3, Colors["#F4F1BB"], Colors["#150A19"], "3", "\uD83D\uDFE8"),
     TWO("Blue", 9, Colors["#9ECDD3"], Colors["#220D00"], "9", "\uD83D\uDFE6"),
     THREE("Green", 27, Colors["#0C6408"],  Colors["#FFFFFF"], "27", "\uD83D\uDFE9"),
-    FOUR("Purple", 81, Colors["#8150C3"], Colors["#CFEBF1"], "81", "\uD83D\uDFEA"),
+    FOUR("Purple", 81, Colors["#8150C3"], Colors["#FFFBFA"], "81", "\uD83D\uDFEA"),
     FIVE("Red", 243, Colors["#A71D31"], Colors["#FFECCE"], "243", "\uD83D\uDFE5"),
     SIX("Orange", 729, Colors["#ED6A5A"], Colors["#011817"], "729", "\uD83D\uDFE7"),
     SEVEN("White", 2187, Colors["#FFFFFF"], Colors["#0A0810"], "2187", "\u2B1C"),
