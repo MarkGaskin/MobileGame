@@ -18,8 +18,8 @@ data class Position(val x: Int, val y: Int) {
 
 fun allPositions(): List<Position> {
     val positionList: MutableList<Position> = mutableListOf()
-    for (i in 0 until gridColumns) {
-        for (j in 0 until gridRows) {
+    for (j in 0 until gridRows) {
+        for (i in 0 until gridColumns) {
             positionList.add(Position(i, j))
         }
     }

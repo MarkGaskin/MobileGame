@@ -502,8 +502,12 @@ fun Container.showGameOver(onGameOver: () -> Unit) =
         showingRestart = true
         Napier.d("Showing Restart Container...")
 
-        fun restart() {
+        fun clearPopup() {
             this@container.removeFromParent()
+        }
+
+        fun restart() {
+            clearPopup()
             onGameOver()
         }
 
@@ -534,13 +538,13 @@ fun Container.showGameOver(onGameOver: () -> Unit) =
                     Napier.d("Restart Button - YES Clicked")
                     showingRestart = false
                     restart()
-                    this@container.removeFromParent()
+                    clearPopup()
                 }
                 onClick {
                     Napier.d("Restart Button - YES Clicked")
                     showingRestart = false
                     restart()
-                    this@container.removeFromParent()
+                    clearPopup()
                 }
             }
         val gameOverText =
@@ -568,7 +572,53 @@ fun Container.showRestart(onRestart: () -> Unit, restartBitmap: Bitmap, shareBit
         }
 
         fun copyBlocksToClipboard() {
-            
+            val allPoses = allPositions()
+
+            Napier.d("All positions: $allPoses")
+
+            var gridString = ""
+            for (j in 0 until gridRows) {
+                for (i in 0 until gridColumns) {
+                    val block = blocksMap[Position(i, j)]
+                    if (block != null) {
+                        gridString = gridString + block?.number?.emoji
+                    }
+                }
+                gridString = gridString + "\n"
+            }
+
+            Napier.d("Copying blocks to clipboard...")
+        
+            Napier.d("GRID: $gridString")
+
+            val scoreString = score.value.toString()
+
+            // convert score string into emojis
+            var scoreEmojiString = scoreString.map {
+                Napier.d("Converting $it to emoji")
+                when (it) {
+                    '0' -> "\u0030\u20E3"
+                    '1' -> "\u0031\u20E3"
+                    '2' -> "\u0032\u20E3"
+                    '3' -> "\u0033\u20E3"
+                    '4' -> "\u0034\u20E3"
+                    '5' -> "\u0035\u20E3"
+                    '6' -> "\u0036\u20E3"
+                    '7' -> "\u0037\u20E3"
+                    '8' -> "\u0038\u20E3"
+                    '9' -> "\u0039\u20E3"
+                    else -> ""
+                }
+            }.joinToString("")
+
+            Napier.d("SCORE: $scoreString")
+            Napier.d("SCORE EMOJI: $scoreEmojiString")
+
+            val clipboardContent = scoreEmojiString + "\n" + gridString + "https://playTr.io"
+
+            Napier.d("Clipboard Content:\n $clipboardContent")
+            // val clipboard = views.clipboard
+            // clipboard.setContents(gridString + "\n" + scoreEmojiString)
         }
 
         val restartBackground =
@@ -581,6 +631,8 @@ fun Container.showRestart(onRestart: () -> Unit, restartBitmap: Bitmap, shareBit
                     this@container.removeFromParent()
                 }
             }
+
+        fun clearPopup () { this@container.removeFromParent() }
         
         val bgRestartContainer =
             container {
@@ -609,13 +661,13 @@ fun Container.showRestart(onRestart: () -> Unit, restartBitmap: Bitmap, shareBit
                     Napier.d("Restart Button - YES Clicked")
                     showingRestart = false
                     restart()
-                    this@container.removeFromParent()
+                    clearPopup()
                 }
                 onClick {
                     Napier.d("Restart Button - YES Clicked")
                     showingRestart = false
                     restart()
-                    this@container.removeFromParent()
+                    clearPopup()
                 }
             }
             container {
