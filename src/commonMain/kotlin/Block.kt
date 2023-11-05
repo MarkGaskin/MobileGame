@@ -3,6 +3,7 @@ import com.soywiz.klogger.AnsiEscape
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.*
 import io.github.aakira.napier.Napier
+import kotlin.random.Random
 
 
 fun Container.addBlock(block: Block) = block.addTo(this)
@@ -10,6 +11,7 @@ fun Container.removeBlock(block: Block) {
     Napier.d("Removing block")
     block.removeFromParent()
 }
+
 
 enum class BlockSelection () {
     UNSELECTED, SMALL, MEDIUM, LARGE, EXTRALARGE, BOMB, ROCKET, PATTERN;
@@ -19,11 +21,11 @@ enum class BlockSelection () {
             UNSELECTED -> number.color
             SMALL -> number.next().color
             MEDIUM -> number.next().next().color
-            LARGE -> Colors["#ca9dd7"]
+            LARGE -> loadedRocketCartridgeColor
             EXTRALARGE -> number.next().next().next().color
-            BOMB -> Colors["#990a00"]
-            ROCKET -> Colors["#d19feb"]
-            PATTERN -> Colors["#37b1ee"]
+            BOMB -> loadedBombCartridgeColor
+            ROCKET -> loadedRocketCartridgeColor
+            PATTERN -> patternBorderOptions[Random.nextInt(patternBorderOptions.size)]
         }
 
     fun colorBorder (number: Number) =
@@ -31,11 +33,11 @@ enum class BlockSelection () {
             UNSELECTED -> number.color
             SMALL -> number.next().color
             MEDIUM -> number.next().next().color
-            LARGE -> Colors["#ca9dd7"]
+            LARGE -> loadedRocketCartridgeColor
             EXTRALARGE -> number.next().next().next().color
-            BOMB -> Colors["#990a00"]
-            ROCKET -> Colors["#d19feb"]
-            PATTERN -> Colors["#37b1ee"]
+            BOMB -> loadedBombCartridgeColor
+            ROCKET -> loadedRocketCartridgeColor
+            PATTERN -> patternBorderOptions[Random.nextInt(patternBorderOptions.size)]
         }
 }
 
@@ -45,11 +47,7 @@ data class Block(val id: Int, var number: Number, var selection: BlockSelection 
         roundRect(cellSize, cellSize, 5, fill = number.color, stroke = selection.colorBorder(number), strokeThickness = 3.5)
         roundRect(cellSize, cellSize, 5, fill = selection.colorContent(number).withA(80),  )
 
-        val textColor = when (number) {
-            ZERO, ONE, TWO, FOUR -> Colors.BLACK
-            else -> Colors.WHITE
-        }
-        text(number.display, textSizeFor(number), textColor, font).apply {
+        text(number.display, textSizeFor(number), number.TextColor, font).apply {
             when (number.ordinal) {
                 0 -> centerBetween(0.0, 0.0, cellSize*1.0-4, cellSize*1.0)
                 else -> centerBetween(0.0, 0.0, cellSize*1.0, cellSize*1.0)
